@@ -9,6 +9,9 @@ st.set_page_config(page_title="Brick Crack Detection", page_icon=":brick:", layo
 # Custom CSS for additional styling
 st.markdown(
     """
+    # Embed HTML to include favicon
+    <link rel="icon" href="images.png" type="image/x-icon">
+    
     <style>
     .reportview-container {
         background-color: #f7f9fc;
