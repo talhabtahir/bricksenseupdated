@@ -17,7 +17,7 @@ st.set_page_config(
 # Load the model
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model('/kaggle/input/kg_33kmodekv36_basev4/keras/default/1/Kg_33kmodelv36_basev4.keras')
+    model = tf.keras.models.load_model('/Kg_33kmodelv36_basev4.keras')
     return model
 
 model = load_model()
