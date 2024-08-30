@@ -42,9 +42,21 @@ def load_model():
 
 model = load_model()
 
-# Sidebar for user input and information
-st.sidebar.header("Upload Image")
-file = st.sidebar.file_uploader("Please upload an image of the brick wall", type=("jpg", "png"))
+# Sidebar for app information
+st.sidebar.header("About This App")
+st.sidebar.write("""
+This app uses a Convolutional Neural Network (CNN) model to detect cracks in brick walls. 
+You can upload an image of a brick wall, and the app will analyze the image to determine if the wall is cracked or normal. 
+The output will provide a predicted class and the probability of the wall being cracked or normal.
+""")
+st.sidebar.write("""
+**Developed by:**  
+Talha Bin Tahir  
+**Email:** talhabtahir@gmail.com
+""")
+
+# Main area for image upload
+file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png"))
 
 # Function to correct image orientation based on EXIF data
 def correct_orientation(image):
@@ -91,12 +103,11 @@ else:
     if probability > 0.5:
         predicted_class = "cracked"
         st.error(f"⚠️ This brick wall is {predicted_class}.")
+        st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
     else:
         predicted_class = "normal"
         st.success(f"✅ This brick wall is {predicted_class}.")
-
-    # Display predicted probability
-    st.write(f"**Predicted Probability of being cracked:** {probability:.2f}")
+        st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
 
 # Footer
 st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
