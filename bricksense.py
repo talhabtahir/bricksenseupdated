@@ -6,7 +6,7 @@ import numpy as np
 # Set the page configuration with favicon
 st.set_page_config(
     page_title="Brick Crack Detection",
-    page_icon="static/brickicon5.png",  # Path to your favicon file
+    page_icon="static/brickicon6.png",  # Path to your favicon file
     layout="centered"
 )
 
