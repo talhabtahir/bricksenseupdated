@@ -31,7 +31,7 @@ st.markdown(
     </style>
     """,
     unsafe_allow_html=True
-
+)
 # Header with an icon
 st.markdown("<h1 class='main-header'>🧱 Brick Crack Detection 🧱</h1>", unsafe_allow_html=True)
 
