@@ -78,12 +78,27 @@ def correct_orientation(image):
     return image
 
 # Function to make predictions using the model
+# def import_and_predict(image_data, model):
+#     try:
+#         size = (224, 224)
+#         image = ImageOps.fit(image_data, size, Image.LANCZOS)
+#         img = np.asarray(image).astype(np.float32) / 255.0
+#         img_reshape = img[np.newaxis, ...]
+#         print(f"Image shape: {img_reshape.shape}")  # Debugging line to check shape
+#         print("Model input shape:", model.input_shape)
+#         prediction = model.predict(img_reshape)
+#         return prediction
+#     except Exception as e:
+#         st.error(f"An error occurred during prediction: {e}")
+#         return None
 def import_and_predict(image_data, model):
     try:
         size = (224, 224)
-        image = ImageOps.fit(image_data, size, Image.LANCZOS)
+        # Convert image to RGB
+        image = image_data.convert("RGB")
+        image = ImageOps.fit(image, size, Image.LANCZOS)
         img = np.asarray(image).astype(np.float32) / 255.0
-        img_reshape = img[np.newaxis, ...]
+        img_reshape = img[np.newaxis, ...]  # Add batch dimension
         print(f"Image shape: {img_reshape.shape}")  # Debugging line to check shape
         print("Model input shape:", model.input_shape)
         prediction = model.predict(img_reshape)
