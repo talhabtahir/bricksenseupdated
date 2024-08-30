@@ -9,10 +9,7 @@ st.set_page_config(page_title="Brick Crack Detection", page_icon=":brick:", layo
 # Custom CSS for additional styling
 st.markdown(
     """
-    # Embed HTML to include favicon
-    <link rel="icon" href="images.png" type="image/x-icon">
-    
-    <style>
+        <style>
     .reportview-container {
         background-color: #f7f9fc;
         padding-top: 20px;
@@ -34,7 +31,13 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
+# Embed HTML to include favicon
+st.markdown(
+    """
+    <link rel="icon" href="images.png" type="image/x-icon">
+    """,
+    unsafe_allow_html=True
+)
 # Header with an icon
 st.markdown("<h1 class='main-header'>🧱 Brick Crack Detection 🧱</h1>", unsafe_allow_html=True)
 
