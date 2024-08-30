@@ -34,7 +34,7 @@ st.markdown(
 # Embed HTML to include favicon
 st.markdown(
     """
-    <link rel="icon" href="images.png" type="image/x-icon">
+    <link rel="icon" href="static/images.png" type="image/x-icon">
     """,
     unsafe_allow_html=True
 )
