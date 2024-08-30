@@ -3,8 +3,13 @@ import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags
 import numpy as np
 
-# Set the page configuration
-st.set_page_config(page_title="Brick Crack Detection", page_icon=":brick:", layout="centered")
+# Set the page configuration with favicon
+st.set_page_config(
+    page_title="Brick Crack Detection",
+    page_icon="static/favicon.ico",  # Path to your favicon file
+    layout="centered"
+)
+
 
 # Custom CSS for additional styling
 st.markdown(
