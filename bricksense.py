@@ -43,7 +43,7 @@ file = st.file_uploader("Please upload an image of the brick wall (jpg or png):"
 # Prediction Function
 def import_and_predict(image_data, model):
     size = (224, 224)
-    image = ImageOps.fit(image_data, size, Image.ANTIALIAS)
+    image = ImageOps.fit(image_data, size, Image.LANCZOS)
     img = np.asarray(image) / 255.0  # Normalize if required by the model
     img_reshape = img[np.newaxis, ...]
     prediction = model.predict(img_reshape)
