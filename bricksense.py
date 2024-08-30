@@ -6,7 +6,7 @@ import numpy as np
 # Set the page configuration with favicon
 st.set_page_config(
     page_title="Brick Crack Detection",
-    page_icon="static/brickicon3.png",  # Path to your favicon file
+    page_icon="static/brickicon4.png",  # Path to your favicon file
     layout="centered"
 )
 
@@ -14,7 +14,7 @@ st.set_page_config(
 # Custom CSS for additional styling
 st.markdown(
     """
-    <link rel="icon" href="static/brickicon3.png" type="image/x-icon">
+    <link rel="icon" href="static/brickicon4.png" type="image/x-icon">
         <style>
     .reportview-container {
         background-color: #f7f9fc;
