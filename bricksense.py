@@ -82,9 +82,10 @@ def import_and_predict(image_data, model):
     try:
         size = (224, 224)
         image = ImageOps.fit(image_data, size, Image.LANCZOS)
-        img = np.asarray(image).astype(np.float32) / 255.0  # Ensure the data type is float32
+        img = np.asarray(image).astype(np.float32) / 255.0
         img_reshape = img[np.newaxis, ...]
         print(f"Image shape: {img_reshape.shape}")  # Debugging line to check shape
+        print("Model input shape:", model.input_shape)
         prediction = model.predict(img_reshape)
         return prediction
     except Exception as e:
