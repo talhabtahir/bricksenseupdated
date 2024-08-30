@@ -1,7 +1,39 @@
-from PIL import Image, ImageOps, ExifTags
-import numpy as np
 import streamlit as st
 import tensorflow as tf
+from PIL import Image, ImageOps, ExifTags
+import numpy as np
+
+# Set the page configuration
+st.set_page_config(page_title="Brick Crack Detection", page_icon=":brick:", layout="centered")
+
+# Custom CSS for additional styling
+st.markdown(
+    """
+    <style>
+    .reportview-container {
+        background-color: #f7f9fc;
+        padding-top: 20px;
+    }
+    .sidebar .sidebar-content {
+        background-color: #f7f9fc;
+    }
+    .main-header {
+        color: #ff6347;
+        text-align: center;
+    }
+    .footer {
+        text-align: center;
+        padding: 10px;
+        font-size: small;
+        color: #666;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Header with an icon
+st.markdown("<h1 class='main-header'>🧱 Brick Crack Detection 🧱</h1>", unsafe_allow_html=True)
 
 @st.cache_resource
 def load_model():
@@ -10,19 +42,11 @@ def load_model():
 
 model = load_model()
 
-st.write("""
-# Brick Crack Detection
-""")
-file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png"))
+# Sidebar for user input and information
+st.sidebar.header("Upload Image")
+file = st.sidebar.file_uploader("Please upload an image of the brick wall", type=("jpg", "png"))
 
-def import_and_predict(image_data, model):
-    size = (224, 224)
-    image = ImageOps.fit(image_data, size, Image.LANCZOS)
-    img = np.asarray(image) / 255.0  # Normalize if required by the model
-    img_reshape = img[np.newaxis, ...]
-    prediction = model.predict(img_reshape)
-    return prediction
-
+# Function to correct image orientation based on EXIF data
 def correct_orientation(image):
     try:
         for orientation in ExifTags.TAGS.keys():
@@ -38,28 +62,41 @@ def correct_orientation(image):
             elif orientation == 8:
                 image = image.rotate(90, expand=True)
     except (AttributeError, KeyError, IndexError):
-        # cases: image don't have getexif
         pass
     return image
 
+# Function to make predictions using the model
+def import_and_predict(image_data, model):
+    size = (224, 224)
+    image = ImageOps.fit(image_data, size, Image.LANCZOS)
+    img = np.asarray(image) / 255.0  # Normalize if required by the model
+    img_reshape = img[np.newaxis, ...]
+    prediction = model.predict(img_reshape)
+    return prediction
+
 if file is None:
-    st.text("Please upload an image file")
+    st.info("Please upload an image file to start the detection.")
 else:
     image = Image.open(file)
     image = correct_orientation(image)  # Correct the orientation
-    st.image(image, use_column_width=True)
+
+    # Display the uploaded image
+    st.image(image, caption='Uploaded Image', use_column_width=True)
+
+    # Prediction and display of results
+    st.write("Analyzing the image...")
     predictions = import_and_predict(image, model)
+    probability = predictions[0][0]
 
-    # Handle single-value prediction
-    probability = predictions[0][0]  # Get the probability value
-
-    # Determine the predicted class based on the probability
     if probability > 0.5:
         predicted_class = "cracked"
+        st.error(f"⚠️ This brick wall is {predicted_class}.")
     else:
         predicted_class = "normal"
-    
-    st.write(f"Predicted class: {predicted_class}")
+        st.success(f"✅ This brick wall is {predicted_class}.")
 
-    string = f"This brick wall is {predicted_class}"
-    st.success(string)
+    # Display predicted probability
+    st.write(f"**Predicted Probability of being cracked:** {probability:.2f}")
+
+# Footer
+st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
