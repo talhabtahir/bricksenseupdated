@@ -79,12 +79,17 @@ def correct_orientation(image):
 
 # Function to make predictions using the model
 def import_and_predict(image_data, model):
-    size = (224, 224)
-    image = ImageOps.fit(image_data, size, Image.LANCZOS)
-    img = np.asarray(image) / 255.0  # Normalize if required by the model
-    img_reshape = img[np.newaxis, ...]
-    prediction = model.predict(img_reshape)
-    return prediction
+    try:
+        size = (224, 224)
+        image = ImageOps.fit(image_data, size, Image.LANCZOS)
+        img = np.asarray(image).astype(np.float32) / 255.0  # Ensure the data type is float32
+        img_reshape = img[np.newaxis, ...]
+        print(f"Image shape: {img_reshape.shape}")  # Debugging line to check shape
+        prediction = model.predict(img_reshape)
+        return prediction
+    except Exception as e:
+        st.error(f"An error occurred during prediction: {e}")
+        return None
 
 if file is None:
     st.info("Please upload an image file to start the detection.")
