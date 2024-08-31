@@ -5,7 +5,6 @@ import numpy as np
 import torch
 import cv2
 import ultralytics
-import io
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -139,14 +138,16 @@ else:
         # Analyze with YOLOv5
         yolo_results = analyze_with_yolo(image_path)
         
-        if yolo_results is not None and not yolo_results.empty:
+        if yolo_results is not None:
             high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
             if not high_confidence_results.empty:
                 detected_classes = high_confidence_results['name'].unique()
                 detected_classes_str = ', '.join(detected_classes).capitalize()  # Capitalize the first letter
                 st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
-                st.warning(f"{detected_classes_str} detected in the uploaded picture. Please upload an image of a brick wall.")
+                st.warning(f"{detected_classes_str} detected in the uploaded picture.")
             else:
+                st.warning("YOLOv5 did not detect any high-confidence objects. Proceeding with TensorFlow model prediction.")
+                
                 # Proceed with TensorFlow model prediction
                 predictions = import_and_predict(image, model)
                 if predictions is not None:
@@ -160,7 +161,7 @@ else:
                         st.success(f"✅ This brick wall is {predicted_class}.")
                         st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
         else:
-            st.warning("YOLOv5 did not detect any high-confidence objects.")
+            st.error("Error processing the uploaded image with YOLOv5.")
     
     except Exception as e:
         st.error(f"Error processing the uploaded image: {e}")
