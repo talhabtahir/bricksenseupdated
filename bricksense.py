@@ -137,7 +137,7 @@ else:
     yolo_results = analyze_with_yolo(image_path)
     
     if yolo_results is not None and not yolo_results.empty:
-        high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
+        high_confidence_results = yolo_results[yolo_results['confidence'] > 0.6]
         if not high_confidence_results.empty:
             detected_classes = high_confidence_results['name'].unique()
             detected_classes_str = ', '.join(detected_classes).capitalize()
