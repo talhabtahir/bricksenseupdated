@@ -167,7 +167,7 @@ else:
         yolo_results = analyze_with_yolo(image_path)
         if yolo_results is not None:
             high_confidence_results = yolo_results[yolo_results['confidence'] >= 0.6]
-            if not high_confidence_results.empty or high_confidence_results > 0:
+            if not high_confidence_results.any():
                 yolo_detected_classes = high_confidence_results['name'].unique().tolist()
                 if any("wall" in class_name.lower() for class_name in yolo_detected_classes):
                     yolo_detected = True
@@ -179,7 +179,7 @@ else:
         if imagenet_predictions:
             st.write("### ImageNet Classification Results:")
             high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
-            if high_confidence_imagenet or False:
+            if high_confidence_imagenet.any():
                 for class_name, score in high_confidence_imagenet:
                     st.write(f"Class: {class_name}, Score: {score:.4f}")
                     if "wall" in class_name.lower():
