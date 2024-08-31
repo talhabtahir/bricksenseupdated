@@ -188,7 +188,7 @@ else:
         
         # Decision based on detection results
         if confres:
-            st.success(f"Following objects/subjects were detected: {', '.join(confres)}.")
+            st.success(f"Following objects/subjects were detected: {', '.join(confres)}. <br> Please upload an image of brick wall")
         else:
             # Step 3: TensorFlow model prediction
             # st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
