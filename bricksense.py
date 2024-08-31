@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import cv2
 import ultralytics
+import io
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -178,20 +179,33 @@ else:
         st.error("Error processing image with YOLOv5.")
 
     if annotated_image is not None:
-        # Show original and annotated images with a slider
+        # Save the images to bytes for embedding in HTML
+        original_image_bytes = io.BytesIO()
+        image.save(original_image_bytes, format='PNG')
+        original_image_data = original_image_bytes.getvalue()
+        
+        annotated_image_bytes = io.BytesIO()
+        annotated_image.save(annotated_image_bytes, format='PNG')
+        annotated_image_data = annotated_image_bytes.getvalue()
+
+        # Display images with interactive slider
         st.subheader("Image Comparison")
-        option = st.slider(
-            "Select Image to Display",
-            min_value=0,
-            max_value=1,
-            value=0,
-            step=1,
-            format="Image %d"
+        st.markdown(
+            f"""
+            <div style="position: relative; width: 100%; height: 400px;">
+                <img id="image-original" src="data:image/png;base64,{original_image_data.decode('latin1')}" style="position: absolute; width: 100%; height: 100%;">
+                <img id="image-annotated" src="data:image/png;base64,{annotated_image_data.decode('latin1')}" style="position: absolute; width: 100%; height: 100%; clip: rect(0, 0, 0, 0);">
+                <input type="range" min="0" max="100" value="0" style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%);" oninput="updateClip(this.value)">
+            </div>
+            <script>
+            function updateClip(value) {{
+                const width = document.getElementById('image-original').offsetWidth;
+                document.getElementById('image-annotated').style.clip = `rect(0, ${width * (value / 100)}px, 100%, 0)`;
+            }}
+            </script>
+            """,
+            unsafe_allow_html=True
         )
-        if option == 0:
-            st.image(image, caption="Original Image", use_column_width=True)
-        else:
-            st.image(annotated_image, caption="Annotated Image with Bounding Boxes", use_column_width=True)
 
 # Footer
 st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
