@@ -137,12 +137,20 @@ else:
     yolo_results = analyze_with_yolo(image_path)
     
     if yolo_results is not None and not yolo_results.empty:
-        high_confidence_results = yolo_results[yolo_results['confidence'] > 0.6]
+        high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
         if not high_confidence_results.empty:
             detected_classes = high_confidence_results['name'].unique()
-            detected_classes_str = ', '.join(detected_classes).capitalize()
-            # st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}"
+            detected_classes_str = ', '.join(detected_classes).capitalize()  # Capitalize the first letter
+            st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
             st.warning(f"{detected_classes_str} detected in the uploaded picture. Please upload an image of a brick wall.")
+            
+            # Display detailed YOLO results
+            st.subheader("YOLO Detection Details")
+            for _, row in high_confidence_results.iterrows():
+                st.write(f"Class: {row['name'].capitalize()}")
+                st.write(f"Confidence: {row['confidence']:.2f}")
+                st.write(f"Bounding Box: {[row['xmin'], row['ymin'], row['xmax'], row['ymax']]}")
+                st.write("---")
         else:
             # Proceed with TensorFlow model prediction
             predictions = import_and_predict(image, model)
