@@ -157,34 +157,34 @@ else:
         image_path = '/tmp/uploaded_image.jpg'
         image.save(image_path, format='JPEG')  # Save as JPEG to avoid format issues
         
-        # Initialize lists to hold detected classes
-        detected_classes = []
+        # Initialize flag to check detection
+        yolo_detected = False
+        resnet50_detected = False
 
         # Step 1: Analyze with YOLOv5
         yolo_results = analyze_with_yolo(image_path)
         if yolo_results is not None:
-            high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
+            high_confidence_results = yolo_results[yolo_results['confidence'] >= 0.6]
             if not high_confidence_results.empty:
                 yolo_detected_classes = high_confidence_results['name'].unique().tolist()
-                detected_classes.extend(yolo_detected_classes)
+                yolo_detected = True
                 st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join(yolo_detected_classes).capitalize()}")
         
         # Step 2: ImageNet classification
         imagenet_predictions = import_and_predict_imagenet(image, imagenet_model)
         if imagenet_predictions:
             st.write("### ImageNet Classification Results:")
-            imagenet_detected_classes = []
             for _, class_name, score in imagenet_predictions:
-                imagenet_detected_classes.append(class_name)
                 st.write(f"Class: {class_name}, Score: {score:.4f}")
-            detected_classes.extend(imagenet_detected_classes)
-        
-        # Combine YOLO and ResNet50 results
-        if detected_classes:
-            st.success(f"Detected classes from both YOLOv5 and ImageNet: {', '.join(set(detected_classes)).capitalize()}")
+                if score >= 0.6:
+                    resnet50_detected = True
+
+        # Decision based on detection results
+        if yolo_detected or resnet50_detected:
+            st.success("Detection criteria met by YOLO or ResNet50.")
         else:
             # Step 3: TensorFlow model prediction
-            st.info("Neither YOLOv5 nor ImageNet detected relevant classes. Proceeding with TensorFlow model prediction.")
+            st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
             predictions = import_and_predict(image, model)
             if predictions is not None:
                 probability = predictions[0][0]
