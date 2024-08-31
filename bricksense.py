@@ -146,7 +146,7 @@ else:
                 st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
                 st.warning(f"{detected_classes_str} detected in the uploaded picture.")
             else:
-                st.warning("YOLOv5 did not detect any high-confidence objects. Proceeding with TensorFlow model prediction.")
+                # st.warning("YOLOv5 did not detect any high-confidence objects. Proceeding with TensorFlow model prediction.")
                 
                 # Proceed with TensorFlow model prediction
                 predictions = import_and_predict(image, model)
