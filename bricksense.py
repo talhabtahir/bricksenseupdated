@@ -1,10 +1,10 @@
 import streamlit as st
 import tensorflow as tf
+from tensorflow.keras.applications import ResNet50, resnet50
 from PIL import Image, ImageOps, ExifTags
 import numpy as np
 import torch
 import cv2
-import ultralytics
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -51,8 +51,15 @@ def load_model():
 def load_yolo_model():
     return torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 
+@st.cache_resource
+def load_imagenet_model():
+    # Load the pre-trained ResNet50 model with ImageNet weights
+    model = ResNet50(weights='imagenet')
+    return model
+
 model = load_model()
 yolo_model = load_yolo_model()
+imagenet_model = load_imagenet_model()
 
 # Sidebar for app information
 st.sidebar.header("About This App")
@@ -93,7 +100,6 @@ def correct_orientation(image):
 def import_and_predict(image_data, model):
     try:
         size = (224, 224)
-        # Convert image to RGB
         image = image_data.convert("RGB")
         image = ImageOps.fit(image, size, Image.LANCZOS)
         img = np.asarray(image).astype(np.float32) / 255.0
@@ -118,6 +124,22 @@ def analyze_with_yolo(image_path):
         return results_df
     except Exception as e:
         st.error(f"An error occurred during YOLO analysis: {e}")
+        return None
+
+# Function to make predictions using the ImageNet model
+def import_and_predict_imagenet(image_data, model):
+    try:
+        size = (224, 224)
+        image = image_data.convert("RGB")
+        image = ImageOps.fit(image, size, Image.LANCZOS)
+        img = np.asarray(image).astype(np.float32)
+        img_reshape = np.expand_dims(img, axis=0)
+        img_preprocessed = resnet50.preprocess_input(img_reshape)
+        prediction = model.predict(img_preprocessed)
+        decoded_predictions = resnet50.decode_predictions(prediction, top=3)[0]
+        return decoded_predictions
+    except Exception as e:
+        st.error(f"An error occurred during ImageNet prediction: {e}")
         return None
 
 if file is None:
@@ -146,22 +168,27 @@ else:
                 st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
                 st.warning(f"{detected_classes_str} detected in the uploaded picture.")
             else:
-                # st.warning("YOLOv5 did not detect any high-confidence objects. Proceeding with TensorFlow model prediction.")
-                
-                # Proceed with TensorFlow model prediction
-                predictions = import_and_predict(image, model)
-                if predictions is not None:
-                    probability = predictions[0][0]
-                    if probability > 0.5:
-                        predicted_class = "cracked"
-                        st.error(f"⚠️ This brick wall is {predicted_class}.")
-                        st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
-                    else:
-                        predicted_class = "normal"
-                        st.success(f"✅ This brick wall is {predicted_class}.")
-                        st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
-        else:
-            st.error("Error processing the uploaded image with YOLOv5.")
+                st.warning("YOLOv5 did not detect any high-confidence objects. Proceeding with further analysis.")
+
+        # Proceed with TensorFlow model prediction
+        predictions = import_and_predict(image, model)
+        if predictions is not None:
+            probability = predictions[0][0]
+            if probability > 0.5:
+                predicted_class = "cracked"
+                st.error(f"⚠️ This brick wall is {predicted_class}.")
+                st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
+            else:
+                predicted_class = "normal"
+                st.success(f"✅ This brick wall is {predicted_class}.")
+                st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
+        
+        # ImageNet classification
+        imagenet_predictions = import_and_predict_imagenet(image, imagenet_model)
+        if imagenet_predictions:
+            st.write("### ImageNet Classification Results:")
+            for _, class_name, score in imagenet_predictions:
+                st.write(f"Class: {class_name}, Score: {score:.4f}")
     
     except Exception as e:
         st.error(f"Error processing the uploaded image: {e}")
