@@ -6,7 +6,6 @@ import torch
 import cv2
 import ultralytics
 import io
-import base64
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -147,7 +146,9 @@ else:
     # Analyze with YOLOv5
     yolo_results, annotated_image = analyze_with_yolo(image_path)
     
+    # Display YOLO results
     if yolo_results is not None:
+        st.subheader("YOLO Detection Results")
         if not yolo_results.empty:
             high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
             if not high_confidence_results.empty:
@@ -163,50 +164,24 @@ else:
                     st.write(f"Confidence: {row['confidence']:.2f}")
                     st.write(f"Bounding Box: {[row['xmin'], row['ymin'], row['xmax'], row['ymax']]}")
                     st.write("---")
+        else:
+            st.write("YOLOv5 did not detect any high-confidence objects.")
+    
+    # Proceed with TensorFlow model prediction
+    if yolo_results is None or yolo_results.empty or high_confidence_results.empty:
+        predictions = import_and_predict(image, model)
+        if predictions is not None:
+            probability = predictions[0][0]
+            if probability > 0.5:
+                predicted_class = "cracked"
+                st.error(f"⚠️ This brick wall is {predicted_class}.")
+                st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
             else:
-                # Proceed with TensorFlow model prediction
-                predictions = import_and_predict(image, model)
-                if predictions is not None:
-                    probability = predictions[0][0]
-                    if probability > 0.5:
-                        predicted_class = "cracked"
-                        st.error(f"⚠️ This brick wall is {predicted_class}.")
-                        st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
-                    else:
-                        predicted_class = "normal"
-                        st.success(f"✅ This brick wall is {predicted_class}.")
-                        st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
+                predicted_class = "normal"
+                st.success(f"✅ This brick wall is {predicted_class}.")
+                st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
     else:
-        st.error("Error processing image with YOLOv5.")
-
-    if annotated_image is not None:
-        # Save the images to bytes for embedding in HTML
-        original_image_bytes = io.BytesIO()
-        image.save(original_image_bytes, format='PNG')
-        original_image_data = base64.b64encode(original_image_bytes.getvalue()).decode('utf-8')
-        
-        annotated_image_bytes = io.BytesIO()
-        annotated_image.save(annotated_image_bytes, format='PNG')
-        annotated_image_data = base64.b64encode(annotated_image_bytes.getvalue()).decode('utf-8')
-
-        # Display images with interactive slider
-        st.subheader("Image Comparison")
-        st.markdown(
-            f"""
-            <div style="position: relative; width: 100%; height: 400px;">
-                <img id="image-original" src="data:image/png;base64,{original_image_data}" style="position: absolute; width: 100%; height: 100%;">
-                <img id="image-annotated" src="data:image/png;base64,{annotated_image_data}" style="position: absolute; width: 100%; height: 100%; clip: rect(0, 0, 100%, 0);">
-                <input type="range" min="0" max="100" value="50" style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%);" oninput="updateClip(this.value)">
-            </div>
-            <script>
-            function updateClip(value) {{
-                const width = document.getElementById('image-original').offsetWidth;
-                document.getElementById('image-annotated').style.clip = "rect(0, " + (width * (value / 100)) + "px, 100%, 0)";
-            }}
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
+        st.write("YOLOv5 results are available.")
 
 # Footer
 st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
