@@ -2,6 +2,8 @@ import streamlit as st
 import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags
 import numpy as np
+import torch
+import cv2
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -9,7 +11,6 @@ st.set_page_config(
     page_icon="static/brickicon4.png",  # Path to your favicon file
     layout="centered"
 )
-
 
 # Custom CSS for additional styling
 st.markdown(
@@ -37,15 +38,20 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 # Header with an icon
 st.markdown("<h1 class='main-header'>🧱 Brick Crack Detection 🧱</h1>", unsafe_allow_html=True)
 
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model('Kg_33kmodelv36_basev4.keras')
-    return model
+    return tf.keras.models.load_model('Kg_33kmodelv36_basev4.keras')
+
+@st.cache_resource
+def load_yolo_model():
+    return torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 
 model = load_model()
+yolo_model = load_yolo_model()
 
 # Sidebar for app information
 st.sidebar.header("About This App")
@@ -82,20 +88,7 @@ def correct_orientation(image):
         pass
     return image
 
-# Function to make predictions using the model
-# def import_and_predict(image_data, model):
-#     try:
-#         size = (224, 224)
-#         image = ImageOps.fit(image_data, size, Image.LANCZOS)
-#         img = np.asarray(image).astype(np.float32) / 255.0
-#         img_reshape = img[np.newaxis, ...]
-#         print(f"Image shape: {img_reshape.shape}")  # Debugging line to check shape
-#         print("Model input shape:", model.input_shape)
-#         prediction = model.predict(img_reshape)
-#         return prediction
-#     except Exception as e:
-#         st.error(f"An error occurred during prediction: {e}")
-#         return None
+# Function to make predictions using the TensorFlow model
 def import_and_predict(image_data, model):
     try:
         size = (224, 224)
@@ -104,12 +97,26 @@ def import_and_predict(image_data, model):
         image = ImageOps.fit(image, size, Image.LANCZOS)
         img = np.asarray(image).astype(np.float32) / 255.0
         img_reshape = img[np.newaxis, ...]  # Add batch dimension
-        print(f"Image shape: {img_reshape.shape}")  # Debugging line to check shape
-        print("Model input shape:", model.input_shape)
         prediction = model.predict(img_reshape)
         return prediction
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
+        return None
+
+# Function to analyze image with YOLOv5
+def analyze_with_yolo(image_path):
+    try:
+        img_cv2 = cv2.imread(image_path)
+        if img_cv2 is None:
+            st.error(f"Error: Could not open or find the image at {image_path}")
+            return None
+        img_rgb = cv2.cvtColor(img_cv2, cv2.COLOR_BGR2RGB)
+        img_rgb = np.ascontiguousarray(img_rgb)
+        results = yolo_model(img_rgb)
+        results_df = results.pandas().xyxy[0]
+        return results_df
+    except Exception as e:
+        st.error(f"An error occurred during YOLO analysis: {e}")
         return None
 
 if file is None:
@@ -118,22 +125,37 @@ else:
     image = Image.open(file)
     image = correct_orientation(image)  # Correct the orientation
 
-    # Display the uploaded image
-    st.image(image, caption='Uploaded Image', use_column_width=True)
+    # Save the uploaded image temporarily for YOLO processing
+    image_path = '/tmp/uploaded_image.jpg'
+    image.save(image_path)
 
-    # Prediction and display of results
-    st.write("Analyzing the image...")
-    predictions = import_and_predict(image, model)
-    probability = predictions[0][0]
-
-    if probability > 0.5:
-        predicted_class = "cracked"
-        st.error(f"⚠️ This brick wall is {predicted_class}.")
-        st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
+    # Analyze with YOLOv5
+    st.write("Analyzing the image with YOLOv5...")
+    yolo_results = analyze_with_yolo(image_path)
+    
+    if yolo_results is not None and not yolo_results.empty:
+        high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
+        if not high_confidence_results.empty:
+            st.write("YOLOv5 detected objects with high confidence:")
+            st.write(high_confidence_results)
+            st.write("Proceeding with the TensorFlow model analysis...")
+        else:
+            st.write("YOLOv5 did not detect any objects with high confidence. Proceeding with TensorFlow model...")
+            # TensorFlow model prediction
+            st.write("Analyzing the image with TensorFlow model...")
+            predictions = import_and_predict(image, model)
+            if predictions is not None:
+                probability = predictions[0][0]
+                if probability > 0.5:
+                    predicted_class = "cracked"
+                    st.error(f"⚠️ This brick wall is {predicted_class}.")
+                    st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
+                else:
+                    predicted_class = "normal"
+                    st.success(f"✅ This brick wall is {predicted_class}.")
+                    st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
     else:
-        predicted_class = "normal"
-        st.success(f"✅ This brick wall is {predicted_class}.")
-        st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
+        st.error("Error processing image with YOLOv5.")
 
 # Footer
 st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
