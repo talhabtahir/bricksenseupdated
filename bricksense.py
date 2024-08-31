@@ -168,6 +168,7 @@ else:
             if not high_confidence_results.empty:
                 yolo_detected_classes = high_confidence_results['name'].unique().tolist()
                 yolo_detected = True
+                st.write("### YOLO Classification Results:")
                 st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join(yolo_detected_classes).capitalize()}")
         
         # Step 2: ImageNet classification
