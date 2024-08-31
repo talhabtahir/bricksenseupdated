@@ -131,7 +131,6 @@ else:
     image.save(image_path)
 
     # Analyze with YOLOv5
-    st.write("Analyzing the image with YOLOv5...")
     yolo_results = analyze_with_yolo(image_path)
     
     if yolo_results is not None and not yolo_results.empty:
@@ -142,9 +141,7 @@ else:
             st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
             st.warning(f"{detected_classes_str} detected in the uploaded picture. Please upload an image of a brick wall.")
         else:
-            st.write("YOLOv5 did not detect any objects with high confidence. Proceeding with TensorFlow model...")
-            # TensorFlow model prediction
-            st.write("Analyzing the image with TensorFlow model...")
+            # Proceed with TensorFlow model prediction
             predictions = import_and_predict(image, model)
             if predictions is not None:
                 probability = predictions[0][0]
