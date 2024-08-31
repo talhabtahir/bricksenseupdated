@@ -188,10 +188,10 @@ else:
         # Collect detection results
         confres = []
         if yolo_detected:
-            confres.append(', '.join(yolo_detected_classes).capitalize())
+            confres.append(', '.join([class_name.capitalize() for class_name in yolo_detected_classes]))
         if imagenet_predictions:
             for class_name, score in high_confidence_imagenet:
-                confres.append(f"{class_name.capitalize()} (score: {score:.2f})")
+                confres.append(class_name.capitalize())")
         
         # Decision based on detection results
         if confres:
