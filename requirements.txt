@@ -3,4 +3,4 @@ tensorflow
 pillow
 numpy
 torch
-opencv-python
+opencv-python==4.6.0
