@@ -177,28 +177,23 @@ else:
         imagenet_predictions = import_and_predict_imagenet(image, imagenet_model)
         if imagenet_predictions:
             st.write("### ImageNet Classification Results:")
-            for _, class_name, score in imagenet_predictions:
-                st.write(f"Class: {class_name}, Score: {score:.4f}")
-                if score >= 0.6:
+            high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
+            if high_confidence_imagenet:
+                for class_name, score in high_confidence_imagenet:
+                    st.write(f"Class: {class_name}, Score: {score:.4f}")
                     resnet50_detected = True
-        # Initialize a list to store detection confidence results
-confres = []
-
-# Check if YOLOv5 detected any classes with high confidence
-if yolo_detected:
-    # Assuming yolo_detected_classes is a list of class names
-    confres.append(', '.join(yolo_detected_classes).capitalize())
-
-# Check ImageNet predictions
-if imagenet_predictions:
-    high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
-    if high_confidence_imagenet:
-        for class_name, score in high_confidence_imagenet:
-            confres.append(f"{class_name.capitalize()} (score: {score:.2f})")
-
-# Decision based on detection results
-if confres:
-    st.success(f"Following objects/subjects detected: {', '.join(confres)}. Please upload image of brick wall.")
+        
+        # Collect detection results
+        confres = []
+        if yolo_detected:
+            confres.append(', '.join(yolo_detected_classes).capitalize())
+        if imagenet_predictions:
+            for class_name, score in high_confidence_imagenet:
+                confres.append(f"{class_name.capitalize()} (score: {score:.2f})")
+        
+        # Decision based on detection results
+        if confres:
+            st.success(f"Detected: {', '.join(confres)}")
         else:
             # Step 3: TensorFlow model prediction
             st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
