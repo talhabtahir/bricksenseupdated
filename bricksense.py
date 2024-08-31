@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import cv2
 import ultralytics
+import os
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -123,41 +124,45 @@ def analyze_with_yolo(image_path):
 if file is None:
     st.info("Please upload an image file to start the detection.")
 else:
-    # Display the uploaded image
-    image = Image.open(file)
-    st.image(image, caption="Uploaded Image", use_column_width=True)  # Add this line to display the image
+    try:
+        # Display the uploaded image
+        image = Image.open(file)
+        st.image(image, caption="Uploaded Image", use_column_width=True)
 
-    image = correct_orientation(image)  # Correct the orientation
+        image = correct_orientation(image)  # Correct the orientation
 
-    # Save the uploaded image temporarily for YOLO processing
-    image_path = '/tmp/uploaded_image.jpg'
-    image.save(image_path)
-
-    # Analyze with YOLOv5
-    yolo_results = analyze_with_yolo(image_path)
-    
-    if yolo_results is not None and not yolo_results.empty:
-        high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
-        if not high_confidence_results.empty:
-            detected_classes = high_confidence_results['name'].unique()
-            detected_classes_str = ', '.join(detected_classes).capitalize() # Capitalize the first letter
-            st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
-            st.warning(f"{detected_classes_str} detected in the uploaded picture. Please upload an image of a brick wall.")
+        # Save the uploaded image temporarily for YOLO processing
+        image_path = '/tmp/uploaded_image.jpg'
+        image.save(image_path)
+        
+        # Analyze with YOLOv5
+        yolo_results = analyze_with_yolo(image_path)
+        
+        if yolo_results is not None and not yolo_results.empty:
+            high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
+            if not high_confidence_results.empty:
+                detected_classes = high_confidence_results['name'].unique()
+                detected_classes_str = ', '.join(detected_classes).capitalize()  # Capitalize the first letter
+                st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
+                st.warning(f"{detected_classes_str} detected in the uploaded picture. Please upload an image of a brick wall.")
+            else:
+                # Proceed with TensorFlow model prediction
+                predictions = import_and_predict(image, model)
+                if predictions is not None:
+                    probability = predictions[0][0]
+                    if probability > 0.5:
+                        predicted_class = "cracked"
+                        st.error(f"⚠️ This brick wall is {predicted_class}.")
+                        st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
+                    else:
+                        predicted_class = "normal"
+                        st.success(f"✅ This brick wall is {predicted_class}.")
+                        st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
         else:
-            # Proceed with TensorFlow model prediction
-            predictions = import_and_predict(image, model)
-            if predictions is not None:
-                probability = predictions[0][0]
-                if probability > 0.5:
-                    predicted_class = "cracked"
-                    st.error(f"⚠️ This brick wall is {predicted_class}.")
-                    st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
-                else:
-                    predicted_class = "normal"
-                    st.success(f"✅ This brick wall is {predicted_class}.")
-                    st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
-    else:
-        st.error("Error processing image with YOLOv5.")
+            st.error("Error processing image with YOLOv5.")
+    
+    except Exception as e:
+        st.error(f"Error processing the uploaded image: {e}")
 
 # Footer
 st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
