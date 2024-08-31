@@ -157,38 +157,45 @@ else:
         image_path = '/tmp/uploaded_image.jpg'
         image.save(image_path, format='JPEG')  # Save as JPEG to avoid format issues
         
-        # Analyze with YOLOv5
+        # Initialize lists to hold detected classes
+        detected_classes = []
+
+        # Step 1: Analyze with YOLOv5
         yolo_results = analyze_with_yolo(image_path)
-        
         if yolo_results is not None:
             high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
             if not high_confidence_results.empty:
-                detected_classes = high_confidence_results['name'].unique()
-                detected_classes_str = ', '.join(detected_classes).capitalize()  # Capitalize the first letter
-                st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
-                st.warning(f"{detected_classes_str} detected in the uploaded picture.")
-            else:
-                st.warning("YOLOv5 did not detect any high-confidence objects. Proceeding with further analysis.")
-
-        # Proceed with TensorFlow model prediction
-        predictions = import_and_predict(image, model)
-        if predictions is not None:
-            probability = predictions[0][0]
-            if probability > 0.5:
-                predicted_class = "cracked"
-                st.error(f"⚠️ This brick wall is {predicted_class}.")
-                st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
-            else:
-                predicted_class = "normal"
-                st.success(f"✅ This brick wall is {predicted_class}.")
-                st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
+                yolo_detected_classes = high_confidence_results['name'].unique().tolist()
+                detected_classes.extend(yolo_detected_classes)
+                st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join(yolo_detected_classes).capitalize()}")
         
-        # ImageNet classification
+        # Step 2: ImageNet classification
         imagenet_predictions = import_and_predict_imagenet(image, imagenet_model)
         if imagenet_predictions:
             st.write("### ImageNet Classification Results:")
+            imagenet_detected_classes = []
             for _, class_name, score in imagenet_predictions:
+                imagenet_detected_classes.append(class_name)
                 st.write(f"Class: {class_name}, Score: {score:.4f}")
+            detected_classes.extend(imagenet_detected_classes)
+        
+        # Combine YOLO and ResNet50 results
+        if detected_classes:
+            st.success(f"Detected classes from both YOLOv5 and ImageNet: {', '.join(set(detected_classes)).capitalize()}")
+        else:
+            # Step 3: TensorFlow model prediction
+            st.info("Neither YOLOv5 nor ImageNet detected relevant classes. Proceeding with TensorFlow model prediction.")
+            predictions = import_and_predict(image, model)
+            if predictions is not None:
+                probability = predictions[0][0]
+                if probability > 0.5:
+                    predicted_class = "cracked"
+                    st.error(f"⚠️ This brick wall is {predicted_class}.")
+                    st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
+                else:
+                    predicted_class = "normal"
+                    st.success(f"✅ This brick wall is {predicted_class}.")
+                    st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
     
     except Exception as e:
         st.error(f"Error processing the uploaded image: {e}")
