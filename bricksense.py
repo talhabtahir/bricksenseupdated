@@ -17,24 +17,24 @@ st.set_page_config(
 st.markdown(
     """
     <link rel="icon" href="static/brickicon4.png" type="image/x-icon">
-        <style>
-    .reportview-container {
-        background-color: #f7f9fc;
-        padding-top: 20px;
-    }
-    .sidebar .sidebar-content {
-        background-color: #f7f9fc;
-    }
-    .main-header {
-        color: #ff6347;
-        text-align: center;
-    }
-    .footer {
-        text-align: center;
-        padding: 10px;
-        font-size: small;
-        color: #666;
-    }
+    <style>
+        .reportview-container {
+            background-color: #f7f9fc;
+            padding-top: 20px;
+        }
+        .sidebar .sidebar-content {
+            background-color: #f7f9fc;
+        }
+        .main-header {
+            color: #ff6347;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            padding: 10px;
+            font-size: small;
+            color: #666;
+        }
     </style>
     """,
     unsafe_allow_html=True
@@ -148,10 +148,12 @@ else:
     try:
         # Display the uploaded image
         image = Image.open(file)
-        st.image(image, caption="Uploaded Image", use_column_width=True)
-
-        image = correct_orientation(image)  # Correct the orientation
-
+        
+        # Correct the orientation if necessary
+        image = correct_orientation(image)
+        
+        st.image(image, caption="Uploaded Image (Corrected Orientation)", use_column_width=True)
+        
         # Convert the image to RGB and save temporarily for YOLO processing
         image = image.convert("RGB")  # Ensure image is in RGB mode
         image_path = '/tmp/uploaded_image.jpg'
@@ -179,10 +181,24 @@ else:
                 st.write(f"Class: {class_name}, Score: {score:.4f}")
                 if score >= 0.6:
                     resnet50_detected = True
+        # Initialize a list to store detection confidence results
+confres = []
 
-        # Decision based on detection results
-        if yolo_detected or resnet50_detected:
-            st.success("Detection criteria met by YOLO or ResNet50.")
+# Check if YOLOv5 detected any classes with high confidence
+if yolo_detected:
+    # Assuming yolo_detected_classes is a list of class names
+    confres.append(', '.join(yolo_detected_classes).capitalize())
+
+# Check ImageNet predictions
+if imagenet_predictions:
+    high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
+    if high_confidence_imagenet:
+        for class_name, score in high_confidence_imagenet:
+            confres.append(f"{class_name.capitalize()} (score: {score:.2f})")
+
+# Decision based on detection results
+if confres:
+    st.success(f"Following objects/subjects detected: {', '.join(confres)}. Please upload image of brick wall.")
         else:
             # Step 3: TensorFlow model prediction
             st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
