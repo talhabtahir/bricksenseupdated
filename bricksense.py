@@ -123,7 +123,10 @@ def analyze_with_yolo(image_path):
 if file is None:
     st.info("Please upload an image file to start the detection.")
 else:
+    # Display the uploaded image
     image = Image.open(file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)  # Add this line to display the image
+
     image = correct_orientation(image)  # Correct the orientation
 
     # Save the uploaded image temporarily for YOLO processing
