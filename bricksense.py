@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import cv2
 import ultralytics
-import os
+import io
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -132,9 +132,9 @@ else:
         image = correct_orientation(image)  # Correct the orientation
 
         # Convert the image to RGB and save temporarily for YOLO processing
-        image = image.convert("RGB")
+        image = image.convert("RGB")  # Ensure image is in RGB mode
         image_path = '/tmp/uploaded_image.jpg'
-        image.save(image_path)
+        image.save(image_path, format='JPEG')  # Save as JPEG to avoid format issues
         
         # Analyze with YOLOv5
         yolo_results = analyze_with_yolo(image_path)
@@ -160,7 +160,7 @@ else:
                         st.success(f"✅ This brick wall is {predicted_class}.")
                         st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
         else:
-            st.error("Error processing image with YOLOv5.")
+            st.warning("YOLOv5 did not detect any high-confidence objects.")
     
     except Exception as e:
         st.error(f"Error processing the uploaded image: {e}")
