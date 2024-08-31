@@ -195,8 +195,8 @@ else:
             f"""
             <div style="position: relative; width: 100%; height: 400px;">
                 <img id="image-original" src="data:image/png;base64,{original_image_data}" style="position: absolute; width: 100%; height: 100%;">
-                <img id="image-annotated" src="data:image/png;base64,{annotated_image_data}" style="position: absolute; width: 100%; height: 100%; clip: rect(0, 0, 0, 0);">
-                <input type="range" min="0" max="100" value="0" style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%);" oninput="updateClip(this.value)">
+                <img id="image-annotated" src="data:image/png;base64,{annotated_image_data}" style="position: absolute; width: 100%; height: 100%; clip: rect(0, 0, 100%, 0);">
+                <input type="range" min="0" max="100" value="50" style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%);" oninput="updateClip(this.value)">
             </div>
             <script>
             function updateClip(value) {{
