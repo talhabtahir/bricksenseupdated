@@ -6,6 +6,7 @@ import torch
 import cv2
 import ultralytics
 import io
+import base64
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -182,25 +183,25 @@ else:
         # Save the images to bytes for embedding in HTML
         original_image_bytes = io.BytesIO()
         image.save(original_image_bytes, format='PNG')
-        original_image_data = original_image_bytes.getvalue()
+        original_image_data = base64.b64encode(original_image_bytes.getvalue()).decode('utf-8')
         
         annotated_image_bytes = io.BytesIO()
         annotated_image.save(annotated_image_bytes, format='PNG')
-        annotated_image_data = annotated_image_bytes.getvalue()
+        annotated_image_data = base64.b64encode(annotated_image_bytes.getvalue()).decode('utf-8')
 
         # Display images with interactive slider
         st.subheader("Image Comparison")
         st.markdown(
             f"""
             <div style="position: relative; width: 100%; height: 400px;">
-                <img id="image-original" src="data:image/png;base64,{original_image_data.decode('latin1')}" style="position: absolute; width: 100%; height: 100%;">
-                <img id="image-annotated" src="data:image/png;base64,{annotated_image_data.decode('latin1')}" style="position: absolute; width: 100%; height: 100%; clip: rect(0, 0, 0, 0);">
+                <img id="image-original" src="data:image/png;base64,{original_image_data}" style="position: absolute; width: 100%; height: 100%;">
+                <img id="image-annotated" src="data:image/png;base64,{annotated_image_data}" style="position: absolute; width: 100%; height: 100%; clip: rect(0, 0, 0, 0);">
                 <input type="range" min="0" max="100" value="0" style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%);" oninput="updateClip(this.value)">
             </div>
             <script>
             function updateClip(value) {{
                 const width = document.getElementById('image-original').offsetWidth;
-                document.getElementById('image-annotated').style.clip = `rect(0, ${width * (value / 100)}px, 100%, 0)`;
+                document.getElementById('image-annotated').style.clip = "rect(0, " + (width * (value / 100)) + "px, 100%, 0)";
             }}
             </script>
             """,
