@@ -4,6 +4,7 @@ from PIL import Image, ImageOps, ExifTags
 import numpy as np
 import torch
 import cv2
+import ultralytics
 
 # Set the page configuration with favicon
 st.set_page_config(
