@@ -164,9 +164,11 @@ else:
                     st.write(f"Confidence: {row['confidence']:.2f}")
                     st.write(f"Bounding Box: {[row['xmin'], row['ymin'], row['xmax'], row['ymax']]}")
                     st.write("---")
+            else:
+                st.write("YOLOv5 did not detect any high-confidence objects.")
         else:
-            st.write("YOLOv5 did not detect any high-confidence objects.")
-    
+            st.write("YOLOv5 did not detect any objects.")
+
     # Proceed with TensorFlow model prediction
     if yolo_results is None or yolo_results.empty or high_confidence_results.empty:
         predictions = import_and_predict(image, model)
