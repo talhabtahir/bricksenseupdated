@@ -177,9 +177,9 @@ else:
         # Step 2: ImageNet classification
         imagenet_predictions = import_and_predict_imagenet(image, imagenet_model)
         if imagenet_predictions:
-            st.write("### ImageNet Classification Results:")
             high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
             if high_confidence_imagenet:
+                st.write("### ImageNet Classification Results:")
                 for class_name, score in high_confidence_imagenet:
                     st.write(f"Class: {class_name}, Score: {score:.4f}")
                     if "wall" in class_name.lower():
@@ -198,7 +198,7 @@ else:
             st.success(f"Following objects/subjects were detected: {', '.join(confres)}. Please upload an image of brick wall.")
         else:
             # Step 3: TensorFlow model prediction
-            st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
+            # st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
             predictions = import_and_predict(image, model)
             if predictions is not None:
                 probability = predictions[0][0]
