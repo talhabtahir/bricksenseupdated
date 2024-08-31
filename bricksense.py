@@ -159,9 +159,12 @@ else:
         image_path = '/tmp/uploaded_image.jpg'
         image.save(image_path, format='JPEG')  # Save as JPEG to avoid format issues
         
-        # Initialize flag to check detection
+        # Initialize flags for detection
         yolo_detected = False
         resnet50_detected = False
+
+        # Collect detection results
+        confres = []
 
         # Step 1: Analyze with YOLOv5
         yolo_results = analyze_with_yolo(image_path)
@@ -169,8 +172,7 @@ else:
             high_confidence_results = yolo_results[yolo_results['confidence'] >= 0.6]
             if not high_confidence_results.empty:
                 yolo_detected_classes = high_confidence_results['name'].unique().tolist()
-                if any("wall" in class_name.lower() for class_name in yolo_detected_classes):
-                    yolo_detected = True
+                confres.extend([class_name.capitalize() for class_name in yolo_detected_classes])
                 st.write("### YOLO Classification Results:")
                 st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join(yolo_detected_classes).capitalize()}")
         
@@ -180,22 +182,13 @@ else:
             high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
             if high_confidence_imagenet:
                 st.write("### ImageNet Classification Results:")
+                confres.extend([class_name.capitalize() for class_name, score in high_confidence_imagenet])
                 for class_name, score in high_confidence_imagenet:
                     st.write(f"Class: {class_name}, Score: {score:.4f}")
-                    if "wall" in class_name.lower():
-                        resnet50_detected = True
-        
-        # Collect detection results
-        confres = []
-        if yolo_detected:
-            confres.append(', '.join([class_name.capitalize() for class_name in yolo_detected_classes]))
-        if imagenet_predictions:
-            for class_name, score in high_confidence_imagenet:
-                confres.append(class_name.capitalize())
         
         # Decision based on detection results
         if confres:
-            st.success(f"Following objects/subjects were detected: {', '.join(confres)}. Please upload an image of brick wall.")
+            st.success(f"Following objects/subjects were detected: {', '.join(confres)}.")
         else:
             # Step 3: TensorFlow model prediction
             # st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
