@@ -141,7 +141,7 @@ else:
         if not high_confidence_results.empty:
             detected_classes = high_confidence_results['name'].unique()
             detected_classes_str = ', '.join(detected_classes)
-            st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
+            # st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}"
             st.warning(f"{detected_classes_str} detected in the uploaded picture. Please upload an image of a brick wall.")
         else:
             # Proceed with TensorFlow model prediction
