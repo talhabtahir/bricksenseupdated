@@ -110,22 +110,31 @@ def analyze_with_yolo(image_path):
         img_cv2 = cv2.imread(image_path)
         if img_cv2 is None:
             st.error(f"Error: Could not open or find the image at {image_path}")
-            return None
+            return None, None
         img_rgb = cv2.cvtColor(img_cv2, cv2.COLOR_BGR2RGB)
         img_rgb = np.ascontiguousarray(img_rgb)
         results = yolo_model(img_rgb)
         results_df = results.pandas().xyxy[0]
-        return results_df
+        
+        # Draw bounding boxes on the image
+        for _, row in results_df.iterrows():
+            if row['confidence'] > 0.8:
+                x1, y1, x2, y2 = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
+                color = (0, 255, 0)  # Green color for bounding box
+                img_cv2 = cv2.rectangle(img_cv2, (x1, y1), (x2, y2), color, 2)
+        
+        annotated_image = Image.fromarray(cv2.cvtColor(img_cv2, cv2.COLOR_BGR2RGB))
+        return results_df, annotated_image
     except Exception as e:
         st.error(f"An error occurred during YOLO analysis: {e}")
-        return None
+        return None, None
 
 if file is None:
     st.info("Please upload an image file to start the detection.")
 else:
     # Display the uploaded image
     image = Image.open(file)
-    st.image(image, caption="Uploaded Image", use_column_width=True)  # Add this line to display the image
+    st.image(image, caption="Uploaded Image", use_column_width=True)
 
     image = correct_orientation(image)  # Correct the orientation
 
@@ -134,38 +143,55 @@ else:
     image.save(image_path)
 
     # Analyze with YOLOv5
-    yolo_results = analyze_with_yolo(image_path)
+    yolo_results, annotated_image = analyze_with_yolo(image_path)
     
-    if yolo_results is not None and not yolo_results.empty:
-        high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
-        if not high_confidence_results.empty:
-            detected_classes = high_confidence_results['name'].unique()
-            detected_classes_str = ', '.join(detected_classes).capitalize()  # Capitalize the first letter
-            st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
-            st.warning(f"{detected_classes_str} detected in the uploaded picture. Please upload an image of a brick wall.")
-            
-            # Display detailed YOLO results
-            st.subheader("YOLO Detection Details")
-            for _, row in high_confidence_results.iterrows():
-                st.write(f"Class: {row['name'].capitalize()}")
-                st.write(f"Confidence: {row['confidence']:.2f}")
-                st.write(f"Bounding Box: {[row['xmin'], row['ymin'], row['xmax'], row['ymax']]}")
-                st.write("---")
-        else:
-            # Proceed with TensorFlow model prediction
-            predictions = import_and_predict(image, model)
-            if predictions is not None:
-                probability = predictions[0][0]
-                if probability > 0.5:
-                    predicted_class = "cracked"
-                    st.error(f"⚠️ This brick wall is {predicted_class}.")
-                    st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
-                else:
-                    predicted_class = "normal"
-                    st.success(f"✅ This brick wall is {predicted_class}.")
-                    st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
+    if yolo_results is not None:
+        if not yolo_results.empty:
+            high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
+            if not high_confidence_results.empty:
+                detected_classes = high_confidence_results['name'].unique()
+                detected_classes_str = ', '.join(detected_classes).capitalize()  # Capitalize the first letter
+                st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
+                st.warning(f"{detected_classes_str} detected in the uploaded picture. Please upload an image of a brick wall.")
+                
+                # Display detailed YOLO results
+                st.subheader("YOLO Detection Details")
+                for _, row in high_confidence_results.iterrows():
+                    st.write(f"Class: {row['name'].capitalize()}")
+                    st.write(f"Confidence: {row['confidence']:.2f}")
+                    st.write(f"Bounding Box: {[row['xmin'], row['ymin'], row['xmax'], row['ymax']]}")
+                    st.write("---")
+            else:
+                # Proceed with TensorFlow model prediction
+                predictions = import_and_predict(image, model)
+                if predictions is not None:
+                    probability = predictions[0][0]
+                    if probability > 0.5:
+                        predicted_class = "cracked"
+                        st.error(f"⚠️ This brick wall is {predicted_class}.")
+                        st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
+                    else:
+                        predicted_class = "normal"
+                        st.success(f"✅ This brick wall is {predicted_class}.")
+                        st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
     else:
         st.error("Error processing image with YOLOv5.")
+
+    if annotated_image is not None:
+        # Show original and annotated images with a slider
+        st.subheader("Image Comparison")
+        option = st.slider(
+            "Select Image to Display",
+            min_value=0,
+            max_value=1,
+            value=0,
+            step=1,
+            format="Image %d"
+        )
+        if option == 0:
+            st.image(image, caption="Original Image", use_column_width=True)
+        else:
+            st.image(annotated_image, caption="Annotated Image with Bounding Boxes", use_column_width=True)
 
 # Footer
 st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
