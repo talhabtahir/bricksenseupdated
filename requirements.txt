@@ -3,4 +3,4 @@ tensorflow
 pillow
 numpy
 torch
-opencv
+opencv-python-headless
