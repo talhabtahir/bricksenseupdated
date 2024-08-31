@@ -136,9 +136,10 @@ else:
     if yolo_results is not None and not yolo_results.empty:
         high_confidence_results = yolo_results[yolo_results['confidence'] > 0.8]
         if not high_confidence_results.empty:
-            st.write("YOLOv5 detected objects with high confidence:")
-            st.write(high_confidence_results)
-            st.write("Proceeding with the TensorFlow model analysis...")
+            detected_classes = high_confidence_results['name'].unique()
+            detected_classes_str = ', '.join(detected_classes)
+            st.write(f"YOLOv5 detected the following classes with high confidence: {detected_classes_str}")
+            st.warning(f"{detected_classes_str} detected in the uploaded picture. Please upload an image of a brick wall.")
         else:
             st.write("YOLOv5 did not detect any objects with high confidence. Proceeding with TensorFlow model...")
             # TensorFlow model prediction
