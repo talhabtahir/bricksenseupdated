@@ -171,8 +171,8 @@ else:
                 yolo_detected_classes = high_confidence_results['name'].unique().tolist()
                 if any("wall" in class_name.lower() for class_name in yolo_detected_classes):
                     yolo_detected = True
-                # st.write("### YOLO Classification Results:")
-                # st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join(yolo_detected_classes).capitalize()}")
+                st.write("### YOLO Classification Results:")
+                st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join(yolo_detected_classes).capitalize()}")
         
         # Step 2: ImageNet classification
         imagenet_predictions = import_and_predict_imagenet(image, imagenet_model)
@@ -198,7 +198,7 @@ else:
             st.success(f"Following objects/subjects were detected: {', '.join(confres)}. Please upload an image of brick wall.")
         else:
             # Step 3: TensorFlow model prediction
-            # st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
+            st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
             predictions = import_and_predict(image, model)
             if predictions is not None:
                 probability = predictions[0][0]
