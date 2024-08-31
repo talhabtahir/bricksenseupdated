@@ -131,7 +131,8 @@ else:
 
         image = correct_orientation(image)  # Correct the orientation
 
-        # Save the uploaded image temporarily for YOLO processing
+        # Convert the image to RGB and save temporarily for YOLO processing
+        image = image.convert("RGB")
         image_path = '/tmp/uploaded_image.jpg'
         image.save(image_path)
         
