@@ -173,6 +173,8 @@ else:
             if not high_confidence_results.empty:
                 yolo_detected_classes = high_confidence_results['name'].unique().tolist()
                 confres.extend([class_name.capitalize() for class_name in yolo_detected_classes])
+                if any("wall" in class_name.lower() for class_name in yolo_detected_classes):
+                    yolo_detected = True
                 st.write("### YOLO Classification Results:")
                 st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join(yolo_detected_classes).capitalize()}")
         
@@ -185,6 +187,22 @@ else:
                 confres.extend([class_name.capitalize() for class_name, score in high_confidence_imagenet])
                 for class_name, score in high_confidence_imagenet:
                     st.write(f"Class: {class_name}, Score: {score:.4f}")
+                    if "wall" in class_name.lower():
+                        resnet50_detected = True
+        # Decision to proceed with TensorFlow model
+        if yolo_detected or resnet50_detected:
+            st.info("Proceeding with TensorFlow model prediction based on detection.")
+            predictions = import_and_predict(image, model)
+            if predictions is not None:
+                probability = predictions[0][0]
+                if probability > 0.5:
+                    predicted_class = "cracked"
+                    st.error(f"⚠️ This brick wall is {predicted_class}.")
+                    st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
+                else:
+                    predicted_class = "normal"
+                    st.success(f"✅ This brick wall is {predicted_class}.")
+                    st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
         
         # Decision based on detection results
         if confres:
