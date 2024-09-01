@@ -203,7 +203,7 @@ else:
                     predicted_class = "normal"
                     st.success(f"✅ This brick wall is {predicted_class}.")
                     st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
-        
+        else:
         # Decision based on detection results
         if confres:
             st.success(f"Following objects/subjects were detected: {', '.join(confres)}. Please upload an image of brick wall")
