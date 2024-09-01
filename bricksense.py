@@ -169,19 +169,20 @@ else:
         # Step 1: Analyze with YOLOv5
         yolo_results = analyze_with_yolo(image_path)
         if yolo_results is not None:
-            high_confidence_results = yolo_results[yolo_results['confidence'] >= 0.6]
-            if not high_confidence_results.empty:
-                yolo_detected_classes = high_confidence_results['name'].unique().tolist()
-                confres.extend([class_name.capitalize() for class_name in yolo_detected_classes])
-                if any("wall" in class_name.lower() for class_name in yolo_detected_classes):
-                    yolo_detected = True
-                st.write("### YOLO Classification Results:")
-                st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join(yolo_detected_classes).capitalize()}")
+            if any("wall" in class_name.lower() for class_name in yolo_detected_classes):
+                yolo_detected = True
+            else:    
+                high_confidence_results = yolo_results[yolo_results['confidence'] >= 0.6]
+                if not high_confidence_results.empty:
+                    yolo_detected_classes = high_confidence_results['name'].unique().tolist()
+                    confres.extend([class_name.capitalize() for class_name in yolo_detected_classes])
+                    st.write("### YOLO Classification Results:")
+                    st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join(yolo_detected_classes).capitalize()}")
         
         # Step 2: ImageNet classification
         imagenet_predictions = import_and_predict_imagenet(image, imagenet_model)
         if imagenet_predictions:
-            if any("wall" in name.lower() for _, name, score in imagenet_predictions):
+            if any("wall" in name.lower() for _, name, score in imagenet_predictions): # Detection of any wall class in imagenet predictions and getting out of loop
                 resnet50_detected = True
             else:
                 high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
