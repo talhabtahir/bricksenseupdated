@@ -181,7 +181,7 @@ else:
         # Step 2: ImageNet classification
         imagenet_predictions = import_and_predict_imagenet(image, imagenet_model)
         if imagenet_predictions:
-            if "wall" in name.lower():
+            if any("wall" in name.lower() for _, name, score in imagenet_predictions):
                 resnet50_detected = True
             else:
                 high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
