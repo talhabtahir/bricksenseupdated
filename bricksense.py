@@ -167,17 +167,28 @@ else:
         confres = []
 
         # Step 1: Analyze with YOLOv5
+        yolo_detected_classes = []  # Initialize to avoid NameError
+
         yolo_results = analyze_with_yolo(image_path)
-        if yolo_results is not None:
-            if any("wall" in class_name.lower() for class_name in yolo_detected_classes):
+        if yolo_results is not None and not yolo_results.empty:
+            # Check if any detected class name contains "wall"
+            if any("wall" in class_name.lower() for class_name in yolo_results['name']):
                 yolo_detected = True
-            else:    
+            else:
+                # Filter results with confidence >= 0.6
                 high_confidence_results = yolo_results[yolo_results['confidence'] >= 0.6]
+                
+                # Check if there are high confidence results
                 if not high_confidence_results.empty:
                     yolo_detected_classes = high_confidence_results['name'].unique().tolist()
                     confres.extend([class_name.capitalize() for class_name in yolo_detected_classes])
                     st.write("### YOLO Classification Results:")
-                    st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join(yolo_detected_classes).capitalize()}")
+                    # Capitalize each class name individually
+                    st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join([name.capitalize() for name in yolo_detected_classes])}")
+
+        # Handle case where yolo_results is None or empty
+        if not yolo_detected_classes:
+            st.write("No classes detected with high confidence using YOLOv5.")
         
         # Step 2: ImageNet classification
         imagenet_predictions = import_and_predict_imagenet(image, imagenet_model)
