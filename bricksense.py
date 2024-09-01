@@ -188,7 +188,7 @@ else:
 
         # Handle case where yolo_results is None or empty
         if not yolo_detected_classes:
-            st.write("No classes detected with high confidence using YOLOv5.")
+            # st.write("No classes detected with high confidence using YOLOv5.")
         
         # Step 2: ImageNet classification
         imagenet_predictions = import_and_predict_imagenet(image, imagenet_model)
