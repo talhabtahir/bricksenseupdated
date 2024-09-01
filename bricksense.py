@@ -182,7 +182,7 @@ else:
                 if not high_confidence_results.empty:
                     yolo_detected_classes = high_confidence_results['name'].unique().tolist()
                     confres.extend([class_name.capitalize() for class_name in yolo_detected_classes])
-                    st.write("### YOLO Classification Results:")
+                    st.write("#### YOLO Classification Results:")
                     # Capitalize each class name individually
                     st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join([name.capitalize() for name in yolo_detected_classes])}")
         
@@ -199,7 +199,7 @@ else:
             else:
                 high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
                 if high_confidence_imagenet:
-                    st.write("### ImageNet Classification Results:")
+                    st.write("#### ImageNet Classification Results:")
                     confres.extend([class_name.capitalize() for class_name, score in high_confidence_imagenet])
                     for class_name, score in high_confidence_imagenet:
                         st.write(f"Class: {class_name}, Score: {score:.4f}")
@@ -221,7 +221,7 @@ else:
         else:
             # Decision based on detection results
             if confres:
-                st.success(f"Following objects/subjects were detected: {', '.join(confres)}. Please upload an image of brick wall")
+                st.info(f"Following objects/subjects were detected: {', '.join(confres)}. Please upload an image of brick wall")
             else:
                 # Step 3: TensorFlow model prediction
                 # st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
