@@ -187,11 +187,11 @@ else:
                 confres.extend([class_name.capitalize() for class_name, score in high_confidence_imagenet])
                 for class_name, score in high_confidence_imagenet:
                     st.write(f"Class: {class_name}, Score: {score:.4f}")
-                    if "wall" in class_name.lower():
-                        resnet50_detected = True
+                if "wall" in class_name.lower():
+                   resnet50_detected = True
         # Decision to proceed with TensorFlow model
         if yolo_detected or resnet50_detected:
-            st.info("Proceeding with TensorFlow model prediction based on detection.")
+            # st.info("Proceeding with TensorFlow model prediction based on detection.")
             predictions = import_and_predict(image, model)
             if predictions is not None:
                 probability = predictions[0][0]
