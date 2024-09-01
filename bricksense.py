@@ -204,23 +204,23 @@ else:
                     st.success(f"✅ This brick wall is {predicted_class}.")
                     st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
         else:
-        # Decision based on detection results
-        if confres:
-            st.success(f"Following objects/subjects were detected: {', '.join(confres)}. Please upload an image of brick wall")
-        else:
-            # Step 3: TensorFlow model prediction
-            # st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
-            predictions = import_and_predict(image, model)
-            if predictions is not None:
-                probability = predictions[0][0]
-                if probability > 0.5:
-                    predicted_class = "cracked"
-                    st.error(f"⚠️ This brick wall is {predicted_class}.")
-                    st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
-                else:
-                    predicted_class = "normal"
-                    st.success(f"✅ This brick wall is {predicted_class}.")
-                    st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
+            # Decision based on detection results
+            if confres:
+                st.success(f"Following objects/subjects were detected: {', '.join(confres)}. Please upload an image of brick wall")
+            else:
+                # Step 3: TensorFlow model prediction
+                # st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
+                predictions = import_and_predict(image, model)
+                if predictions is not None:
+                    probability = predictions[0][0]
+                    if probability > 0.5:
+                        predicted_class = "cracked"
+                        st.error(f"⚠️ This brick wall is {predicted_class}.")
+                        st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
+                    else:
+                        predicted_class = "normal"
+                        st.success(f"✅ This brick wall is {predicted_class}.")
+                        st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
     
     except Exception as e:
         st.error(f"Error processing the uploaded image: {e}")
