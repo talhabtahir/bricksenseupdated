@@ -184,12 +184,12 @@ else:
             if "wall" in name.lower():
                 resnet50_detected = True
             else:
-            high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
-            if high_confidence_imagenet:
-                st.write("### ImageNet Classification Results:")
-                confres.extend([class_name.capitalize() for class_name, score in high_confidence_imagenet])
-                for class_name, score in high_confidence_imagenet:
-                    st.write(f"Class: {class_name}, Score: {score:.4f}")
+                high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
+                if high_confidence_imagenet:
+                    st.write("### ImageNet Classification Results:")
+                    confres.extend([class_name.capitalize() for class_name, score in high_confidence_imagenet])
+                    for class_name, score in high_confidence_imagenet:
+                        st.write(f"Class: {class_name}, Score: {score:.4f}")
                 
         # Decision to proceed with TensorFlow model
         if yolo_detected or resnet50_detected:
