@@ -122,20 +122,17 @@ def add_canvas(image, fill_color=(255, 255, 255)):
     return canvas
 
 def apply_thresholding_and_morphology(heatmap):
-    # Convert heatmap (normalized between 0 and 1) to 8-bit (0-255)
+    # Convert heatmap to 8-bit
     heatmap_8bit = np.uint8(255 * heatmap)
 
-    # Apply global thresholding (you can tweak the threshold value as needed)
+    # Apply thresholding
     _, binary_map = cv2.threshold(heatmap_8bit, 127, 255, cv2.THRESH_BINARY)
 
-    # Define a kernel for morphological operations (e.g., 3x3 matrix of ones)
+    # Define kernel for morphological operations
     kernel = np.ones((3, 3), np.uint8)
 
-    # Apply morphological operations
-    # Dilation to expand crack regions
+    # Dilation and Erosion
     dilated_map = cv2.dilate(binary_map, kernel, iterations=2)
-
-    # Erosion to remove small noise and refine the crack areas
     eroded_map = cv2.erode(dilated_map, kernel, iterations=1)
 
     return binary_map, dilated_map, eroded_map
@@ -143,73 +140,50 @@ def apply_thresholding_and_morphology(heatmap):
 # Function to localize the crack and to make predictions using the TensorFlow model
 def import_and_predict(image_data, model, sensitivity=11):
     try:
-        # Get original image size
-        original_size = image_data.size  # (width, height)
+        original_size = image_data.size
         original_width, original_height = original_size
-        size = (224, 224)  # Model input size
+        size = (224, 224)
 
-        # Resize the image for model prediction
         image_resized = image_data.convert("RGB")
         image_resized = ImageOps.fit(image_resized, size, Image.LANCZOS)
         img = np.asarray(image_resized).astype(np.float32) / 255.0
         img_reshape = img[np.newaxis, ...]
 
-        # Get predictions from the model
         custom_model = Model(inputs=model.inputs, 
                              outputs=(model.layers[sensitivity].output, model.layers[-1].output))
         layer_output, pred_vec = custom_model.predict(img_reshape)
 
-        # Get the predicted class and confidence
         pred = np.argmax(pred_vec)
+        layer_output = np.squeeze(layer_output)
+        heat_map = np.mean(layer_output, axis=-1)
 
-        # Extract the feature map output
-        layer_output = np.squeeze(layer_output)  # Shape varies based on the layer
+        heat_map = np.maximum(heat_map, 0)
+        heat_map /= np.max(heat_map)
 
-        # Average across the depth dimension to generate the heatmap
-        heat_map = np.mean(layer_output, axis=-1)  # Shape depends on the layer
-
-        # Normalize the heatmap between 0 and 1 for better visualization
-        heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
-        heat_map /= np.max(heat_map)  # Normalize to 0-1
-
-        # Resize heatmap to the size of the resized image (224, 224)
         heatmap_resized = cv2.resize(heat_map, size, interpolation=cv2.INTER_LINEAR)
 
-        # Apply thresholding and morphological operations
         binary_map, dilated_map, eroded_map = apply_thresholding_and_morphology(heatmap_resized)
 
-        # Convert original image to numpy array (for drawing)
         original_img_np = np.array(image_data)
 
-        # Ensure the original image is in 3 channels (RGB) for drawing
-        if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
+        if len(original_img_np.shape) == 2:
             original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
 
-        # Convert the binary map to RGB for visualization
-        binary_map_rgb = cv2.cvtColor(binary_map, cv2.COLOR_GRAY2RGB)
-        dilated_map_rgb = cv2.cvtColor(dilated_map, cv2.COLOR_GRAY2RGB)
-        eroded_map_rgb = cv2.cvtColor(eroded_map, cv2.COLOR_GRAY2RGB)
-
-        # Draw on the original image if needed (for example, overlay binary_map)
         original_img_bgr = cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR)
-        overlay_img_bgr = cv2.addWeighted(original_img_bgr, 0.7, dilated_map_rgb, 0.3, 0)
 
-        # Convert back to RGB for visualization in Streamlit
+        # Ensure dilated_map has the same size and channels as original_img_bgr
+        dilated_map_rgb = cv2.cvtColor(dilated_map, cv2.COLOR_GRAY2RGB)
+        dilated_map_rgb_resized = cv2.resize(dilated_map_rgb, (original_img_bgr.shape[1], original_img_bgr.shape[0]))
+
+        overlay_img_bgr = cv2.addWeighted(original_img_bgr, 0.7, dilated_map_rgb_resized, 0.3, 0)
+
         contours_img_rgb = cv2.cvtColor(overlay_img_bgr, cv2.COLOR_BGR2RGB)
-
-        # Convert to a PIL Image for display in Streamlit
         contours_pil2 = Image.fromarray(contours_img_rgb)
 
-        # Apply Brightness or Contrast Enhancement
         enhancer = ImageEnhance.Brightness(contours_pil2)
-        contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
+        contours_pil = enhancer.enhance(0.8)
 
-        # Add white borders
-        border_size = 10  # Set the border size
-        image_with_border = add_white_border(image_data, border_size)
-        contours_with_border = add_white_border(contours_pil, border_size)
-
-        return pred_vec, image_with_border, contours_with_border, contours_pil2
+        return pred_vec, contours_pil2
 
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
