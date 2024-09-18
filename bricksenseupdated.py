@@ -273,8 +273,8 @@ else:
 
                
                 
-                image_with_border = add_canvas(image_with_border)
-                contours_with_border = add_canvas(contours_with_border)               
+                image_with_border = add_canvas(image)
+                contours_with_border = add_canvas(contours_pil2)               
                 # st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
                 # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
                 # st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
