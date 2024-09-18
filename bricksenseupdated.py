@@ -215,8 +215,8 @@ else:
             pred_vec, contours_pil2 = import_and_predict(image, model)
             
             if predictions is not None:
-                predicted_class = np.argmax(predictions)
-                prediction_percentages = predictions[0] * 100
+                predicted_class = np.argmax(pred_vec)
+                prediction_percentages = pred_vec[0] * 100
 
                  # Display prediction result
                 if predicted_class == 0:
