@@ -212,7 +212,7 @@ else:
             
             
             # Perform prediction
-            predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model)
+            pred_vec, contours_pil2 = import_and_predict(image, model)
             
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
@@ -254,7 +254,7 @@ else:
                         format="%.1f"    # Format to display sensitivity with one decimal
                                             )
                 # Perform prediction again
-                predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model, sensitivity=sensitivity)
+                pred_vec, contours_pil2 = import_and_predict(image, model, sensitivity=sensitivity)
 
                 # Display the uploaded image and the contours side by side
                 col1, col2 = st.columns(2)
