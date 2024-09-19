@@ -25,7 +25,6 @@ def process_and_predict_image(image):
         
         # Save original dimensions
         orig_height, orig_width, _ = original_img.shape
-        st.write(f"Original image dimensions: {orig_width}x{orig_height}")
 
         # Preprocess the image for the model
         img_resized = cv2.resize(original_img, (224, 224))
@@ -45,11 +44,9 @@ def process_and_predict_image(image):
         
         # Resize the conv2d_3 output to match the input image size
         heat_map_resized = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
-        st.write(f"Upsampled conv2d_3 output dimensions: {orig_width}x{orig_height}")
 
         # Average all the filters from conv2d_3 to get a single activation map
         heat_map = np.mean(heat_map_resized, axis=-1)  # (orig_height, orig_width)
-        st.write(f"Heatmap dimensions: {heat_map.shape[1]}x{heat_map.shape[0]}")
 
         # Normalize the heatmap for better visualization
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
@@ -63,35 +60,40 @@ def process_and_predict_image(image):
         # Find contours in the thresholded heatmap
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Draw contours on the original image
-        contoured_img = original_img.copy()  # Copy original image
-        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours
-
-        # Convert the heatmap to RGB for display
+        # Convert heatmap to RGB for display
         heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])
-        
-        # Convert heatmap and contoured images to PIL format for Streamlit
         heatmap_image = Image.fromarray(heatmap_colored)
-        contoured_image = Image.fromarray(contoured_img)
         
-        # Ensure the images are in the same mode and size for blending
+        # Convert contours to an image
+        contours_image = np.zeros_like(original_img)  # Black background
+        cv2.drawContours(contours_image, contours, -1, (0, 255, 0), 2)  # Draw green contours
+        contours_image = Image.fromarray(contours_image)
+
+        # Create combined image with heatmap and contours
         heatmap_image_rgba = heatmap_image.convert("RGBA")
         original_img_pil = Image.fromarray(original_img).convert("RGBA")
         
-        # Overlay heatmap on original image
-        overlay_img = Image.blend(original_img_pil, heatmap_image_rgba, alpha=0.5)  # Adjust alpha as needed
+        # Blend heatmap with the original image
+        heatmap_overlay = Image.blend(original_img_pil, heatmap_image_rgba, alpha=0.5)
         
-        # Convert overlay image to RGB for Streamlit
-        overlay_image = overlay_img.convert("RGB")
+        # Convert the blended image to numpy array for drawing contours
+        heatmap_overlay_np = np.array(heatmap_overlay)
+        
+        # Draw contours on the heatmap-overlayed image
+        cv2.drawContours(heatmap_overlay_np, contours, -1, (0, 255, 0), 2)  # Draw green contours
+        
+        # Convert back to PIL format for Streamlit
+        combined_image = Image.fromarray(heatmap_overlay_np)
 
         # Get the predicted class name
         predicted_class = class_labels[pred]
 
-        return heatmap_image, contoured_image, overlay_image, predicted_class
+        return heatmap_image, contours_image, combined_image, predicted_class
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
         return None, None, None, None
+
 
 
 
