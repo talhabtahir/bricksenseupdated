@@ -5,6 +5,7 @@ from PIL import Image
 import tensorflow as tf
 from tensorflow.keras.models import Model
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 # Load the model once
 @st.cache_resource
@@ -20,10 +21,13 @@ class_labels = ["Normal", "Cracked", "Not a Wall"]
 def process_and_predict_image(image):
     # Convert image to numpy array
     original_img = np.array(image)
+    
+    # Save original dimensions
+    orig_height, orig_width, _ = original_img.shape
 
     # Preprocess the image for the model
-    img = cv2.resize(original_img, (224, 224))
-    img_tensor = np.expand_dims(img, axis=0) / 255.0
+    img_resized = cv2.resize(original_img, (224, 224))
+    img_tensor = np.expand_dims(img_resized, axis=0) / 255.0
     preprocessed_img = img_tensor
     
     # Define a new model that outputs the conv2d_3 feature maps and the prediction
@@ -38,8 +42,7 @@ def process_and_predict_image(image):
     pred = np.argmax(pred_vec)
 
     # Resize the conv2d_3 output to match the input image size
-    # Resizing back to original image size, not the resized input size
-    upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (original_img.shape[1], original_img.shape[0]), interpolation=cv2.INTER_LINEAR)  # (original width, original height)
+    upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)  # (original width, original height)
 
     # Average all the filters from conv2d_3 to get a single activation map
     heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # Take the mean of the 32 filters, resulting in (original height, original width)
@@ -47,6 +50,12 @@ def process_and_predict_image(image):
     # Normalize the heatmap for better visualization
     heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
     heat_map = heat_map / heat_map.max()  # Normalize to 0-1
+
+    # Create a heatmap overlay using colormap
+    heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])  # Use a colormap (e.g., jet)
+
+    # Overlay the heatmap on the original image
+    overlayed_img = cv2.addWeighted(original_img, 0.6, heatmap_colored, 0.4, 0)
 
     # Threshold the heatmap to get the regions with the highest activation
     threshold = 0.5  # You can adjust this threshold
@@ -56,14 +65,14 @@ def process_and_predict_image(image):
     # Find contours in the thresholded heatmap
     contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Draw contours on the original image (without the heatmap overlay)
-    contoured_img_only = original_img.copy()  # Copy original image
-    cv2.drawContours(contoured_img_only, contours, -1, (0, 255, 0), 2)  # Draw green contours (lines)
+    # Draw contours on the original image
+    contoured_img = overlayed_img.copy()  # Copy image with heatmap
+    cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours (lines)
 
     # Get the predicted class name
     predicted_class = class_labels[pred]
 
-    return contoured_img_only, predicted_class
+    return contoured_img, predicted_class
 
 # Streamlit app layout
 st.title("Image Prediction and Contour Detection")
@@ -80,8 +89,8 @@ if uploaded_file is not None:
     st.image(image, caption='Uploaded Image', use_column_width=True)
 
     # Process the image and get the result
-    contoured_img_only, predicted_class = process_and_predict_image(image)
+    contoured_img, predicted_class = process_and_predict_image(image)
 
     # Display the result
     st.write(f"Predicted Class: {predicted_class}")
-    st.image(contoured_img_only, caption='Image with Contours', use_column_width=True)
+    st.image(contoured_img, caption='Image with Contours and Heatmap Overlay', use_column_width=True)
