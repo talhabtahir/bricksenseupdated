@@ -10,7 +10,7 @@ import matplotlib.cm as cm
 # Load the model once
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model('/kaggle/input/models-comp/keras/default/1/170kmodelv10_version_cam_1.keras')
+    return tf.keras.models.load_model('170kmodelv10_version_cam_1.keras')
 
 model = load_model()
 
