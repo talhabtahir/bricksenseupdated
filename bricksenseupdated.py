@@ -54,7 +54,13 @@ def process_and_predict_image(image):
     # Create a heatmap overlay using colormap
     heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])  # Use a colormap (e.g., jet)
 
-    # Overlay the heatmap on the original image
+    # Resize heatmap_colored to match original image dimensions if needed
+    heatmap_colored = cv2.resize(heatmap_colored, (orig_width, orig_height))
+
+    # Debugging: Display the heatmap without overlay
+    st.image(heatmap_colored, caption="Debug: Heatmap without Overlay", use_column_width=True)
+
+    # Overlay the heatmap on the original image using alpha blending
     overlayed_img = cv2.addWeighted(original_img, 0.6, heatmap_colored, 0.4, 0)
 
     # Threshold the heatmap to get the regions with the highest activation
