@@ -111,17 +111,17 @@ if uploaded_file is not None:
     heatmap_image, contoured_image, overlay_image, predicted_class = process_and_predict_image(image)
 
     # Check if the prediction and images were processed successfully
-    if contoured_img is not None and predicted_class is not None:
+    if heatmap_image is not None and contoured_image is not None and overlay_image is not None and predicted_class is not None:
         # Display the predicted class
         st.write(f"Predicted Class: {predicted_class}")
 
         # Display the heatmap
-        st.image(heatmap_img, caption='Heatmap', use_column_width=True)
+        st.image(heatmap_image, caption='Heatmap', use_column_width=True)
 
         # Display the contoured image
-        st.image(contoured_img, caption='Image with Contours', use_column_width=True)
+        st.image(contoured_image, caption='Image with Contours', use_column_width=True)
 
-        # Display the contoured image
-        st.image(overlay_image, caption='Image with Contours', use_column_width=True)
+        # Display the overlay image
+        st.image(overlay_image, caption='Overlay Image', use_column_width=True)
     else:
         st.error("An error occurred during image processing.")
