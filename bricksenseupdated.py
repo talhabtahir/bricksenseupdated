@@ -44,11 +44,11 @@ def process_and_predict_image(image):
         pred = np.argmax(pred_vec)
         
         # Resize the conv2d_3 output to match the input image size
-        upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
+        heat_map_resized = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
         st.write(f"Upsampled conv2d_3 output dimensions: {orig_width}x{orig_height}")
 
         # Average all the filters from conv2d_3 to get a single activation map
-        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # (orig_height, orig_width)
+        heat_map = np.mean(heat_map_resized, axis=-1)  # (orig_height, orig_width)
         st.write(f"Heatmap dimensions: {heat_map.shape[1]}x{heat_map.shape[0]}")
 
         # Normalize the heatmap for better visualization
@@ -92,6 +92,7 @@ def process_and_predict_image(image):
     except Exception as e:
         st.error(f"An error occurred: {e}")
         return None, None, None, None
+
 
 
 # Streamlit app layout
