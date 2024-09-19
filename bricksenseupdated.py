@@ -33,7 +33,7 @@ def process_and_predict_image(image):
         
         # Define a new model that outputs the conv2d_3 feature maps and the prediction
         custom_model = Model(inputs=model.inputs, 
-                             outputs=(model.layers[12].output, model.layers[-1].output))  # `conv2d_3` and predictions
+                             outputs=(model.layers[10].output, model.layers[-1].output))  # `conv2d_3` and predictions
 
         # Get the conv2d_3 output and the predictions
         conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
