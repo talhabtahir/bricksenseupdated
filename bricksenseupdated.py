@@ -51,7 +51,7 @@ def process_and_predict_image(image):
         # Ensure the shape of `pred_vec` is as expected
         if pred_vec.shape[-1] != len(class_labels):
             st.error(f"Unexpected shape of prediction vector: {pred_vec.shape}. Expected number of classes: {len(class_labels)}.")
-            return None, None
+            return None, None, None
         
         # Prediction for the image
         pred = np.argmax(pred_vec)
@@ -60,7 +60,7 @@ def process_and_predict_image(image):
         # Ensure the prediction index is within the valid range
         if pred < 0 or pred >= len(class_labels):
             st.error(f"Prediction index {pred} is out of range for class labels.")
-            return None, None
+            return None, None, None
 
         # Generate the heatmap
         selected_feature_maps = conv2d_3_output[:, :, :3]  # Use the first 3 feature maps as an example
@@ -81,19 +81,26 @@ def process_and_predict_image(image):
         contoured_img = original_img.copy()  # Copy original image
         cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours
 
+        # Convert the heatmap to RGB for display
+        heatmap_colored = np.uint8(255 * cm.jet(heat_map_resized)[:, :, :3])
+        
+        # Convert heatmap and contoured images to PIL format for Streamlit
+        heatmap_image = Image.fromarray(heatmap_colored)
+        contoured_image = Image.fromarray(contoured_img)
+
         # Get the predicted class name
         predicted_class = class_labels[pred]
 
-        return contoured_img, predicted_class
+        return heatmap_image, contoured_image, predicted_class
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
-        return None, None
+        return None, None, None
 
 
 # Streamlit app layout
 st.title("Image Prediction and Contour Detection")
-st.write("Upload an image, and the model will predict its class and draw contours on the regions with highest activations.")
+st.write("Upload an image, and the model will predict its class, display the heatmap, and draw contours on the regions with highest activations.")
 
 # Upload an image
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
@@ -105,13 +112,18 @@ if uploaded_file is not None:
     # Display the original image
     st.image(image, caption='Uploaded Image', use_column_width=True)
 
-    # Process the image and get the result
-    contoured_img, predicted_class = process_and_predict_image(image)
+    # Process the image and get the results
+    heatmap_img, contoured_img, predicted_class = process_and_predict_image(image)
 
-    # Check if the prediction was successful
+    # Check if the prediction and images were processed successfully
     if contoured_img is not None and predicted_class is not None:
-        # Display the result
+        # Display the predicted class
         st.write(f"Predicted Class: {predicted_class}")
-        st.image(contoured_img, caption='Image with Contours and Heatmap Overlay', use_column_width=True)
+
+        # Display the heatmap
+        st.image(heatmap_img, caption='Heatmap', use_column_width=True)
+
+        # Display the contoured image
+        st.image(contoured_img, caption='Image with Contours', use_column_width=True)
     else:
         st.error("An error occurred during image processing.")
