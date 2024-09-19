@@ -33,7 +33,7 @@ def process_and_predict_image(image):
         
         # Define a new model that outputs the conv2d_3 feature maps and the prediction
         custom_model = Model(inputs=model.inputs, 
-                             outputs=(model.layers[11].output, model.layers[-1].output))  # `conv2d_3` and predictions
+                             outputs=(model.layers[10].output, model.layers[-1].output))  # `conv2d_3` and predictions
 
         # Get the conv2d_3 output and the predictions
         conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
@@ -62,21 +62,26 @@ def process_and_predict_image(image):
             st.error(f"Prediction index {pred} is out of range for class labels.")
             return None, None
 
-        # Continue with heatmap processing...
-        # Example heatmap code (adjust as needed)
+        # Generate the heatmap
         selected_feature_maps = conv2d_3_output[:, :, :3]  # Use the first 3 feature maps as an example
         heat_map = np.mean(selected_feature_maps, axis=-1)
         heat_map_resized = cv2.resize(heat_map, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
         heat_map_resized = np.maximum(heat_map_resized, 0)
         heat_map_resized = heat_map_resized / heat_map_resized.max()
-        heatmap_colored = np.uint8(255 * cm.jet(heat_map_resized)[:, :, :3])
-        overlayed_img = cv2.addWeighted(original_img, 0.6, heatmap_colored, 0.4, 0)
-        contoured_img = overlayed_img.copy()
         
-        # Draw contours (dummy code, replace with actual contouring logic)
-        # Assuming contours are computed earlier
-        # cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw contours in green
+        # Threshold the heatmap
+        threshold = 0.5  # Adjust this threshold if needed
+        heat_map_thresh = np.uint8(255 * heat_map_resized)
+        _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
 
+        # Find contours in the thresholded heatmap
+        contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Draw contours on the original image
+        contoured_img = original_img.copy()  # Copy original image
+        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours
+
+        # Get the predicted class name
         predicted_class = class_labels[pred]
 
         return contoured_img, predicted_class
@@ -84,6 +89,7 @@ def process_and_predict_image(image):
     except Exception as e:
         st.error(f"An error occurred: {e}")
         return None, None
+
 
 # Streamlit app layout
 st.title("Image Prediction and Contour Detection")
