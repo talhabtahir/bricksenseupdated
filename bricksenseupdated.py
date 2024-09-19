@@ -108,7 +108,7 @@ if uploaded_file is not None:
     st.image(image, caption='Uploaded Image', use_column_width=True)
 
     # Process the image and get the results
-    heatmap_img, contoured_img, predicted_class = process_and_predict_image(image)
+    heatmap_image, contoured_image, overlay_image, predicted_class = process_and_predict_image(image)
 
     # Check if the prediction and images were processed successfully
     if contoured_img is not None and predicted_class is not None:
@@ -120,5 +120,8 @@ if uploaded_file is not None:
 
         # Display the contoured image
         st.image(contoured_img, caption='Image with Contours', use_column_width=True)
+
+        # Display the contoured image
+        st.image(overlay_image, caption='Image with Contours', use_column_width=True)
     else:
         st.error("An error occurred during image processing.")
