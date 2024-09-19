@@ -68,7 +68,7 @@ def process_and_predict_image(image):
     predicted_class = class_labels[pred]
 
     # (Return processed image and predicted class as before)
-    return original_img, predicted_class
+    return contoured_img, predicted_class
 
 # Streamlit app layout
 st.title("Image Prediction and Contour Detection")
