@@ -1,3 +1,19 @@
+import streamlit as st
+from PIL import Image
+import numpy as np
+import cv2
+import tensorflow as tf
+from tensorflow.keras.models import Model
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+
+# Load the model once
+@st.cache_resource
+def load_model():
+    return tf.keras.models.load_model('/kaggle/input/models-comp/keras/default/1/170kmodelv10_version_cam_1.keras')
+
+model = load_model()
+
 # Define class labels
 class_labels = ["Normal", "Cracked", "Not a Wall"]
 
@@ -52,7 +68,7 @@ def process_and_predict_image(image):
     predicted_class = class_labels[pred]
 
     # (Return processed image and predicted class as before)
-    return contoured_img, predicted_class
+    return original_img, predicted_class
 
 # Streamlit app layout
 st.title("Image Prediction and Contour Detection")
