@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # Load the model once
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model('170kmodelv10_version_cam_1.keras')
+    return tf.keras.models.load_model('/kaggle/input/models-comp/keras/default/1/170kmodelv10_version_cam_1.keras')
 
 model = load_model()
 
@@ -18,9 +18,11 @@ class_labels = ["Normal", "Cracked", "Not a Wall"]
 
 # Define a function for the processing and prediction
 def process_and_predict_image(image):
-    # Preprocess the image
-    img = np.array(image)
-    img = cv2.resize(img, (224, 224))
+    # Convert image to numpy array
+    original_img = np.array(image)
+
+    # Preprocess the image for the model
+    img = cv2.resize(original_img, (224, 224))
     img_tensor = np.expand_dims(img, axis=0) / 255.0
     preprocessed_img = img_tensor
     
@@ -36,10 +38,11 @@ def process_and_predict_image(image):
     pred = np.argmax(pred_vec)
 
     # Resize the conv2d_3 output to match the input image size
-    upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)  # (224, 224, 32)
+    # Resizing back to original image size, not the resized input size
+    upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (original_img.shape[1], original_img.shape[0]), interpolation=cv2.INTER_LINEAR)  # (original width, original height)
 
     # Average all the filters from conv2d_3 to get a single activation map
-    heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # Take the mean of the 32 filters, resulting in (224, 224)
+    heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # Take the mean of the 32 filters, resulting in (original height, original width)
 
     # Normalize the heatmap for better visualization
     heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
@@ -54,7 +57,7 @@ def process_and_predict_image(image):
     contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # Draw contours on the original image (without the heatmap overlay)
-    contoured_img_only = img.copy()  # Copy original image
+    contoured_img_only = original_img.copy()  # Copy original image
     cv2.drawContours(contoured_img_only, contours, -1, (0, 255, 0), 2)  # Draw green contours (lines)
 
     # Get the predicted class name
