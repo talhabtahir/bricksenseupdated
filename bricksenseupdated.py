@@ -41,31 +41,39 @@ def process_and_predict_image(image):
     # Prediction for the image
     pred = np.argmax(pred_vec)
 
-    # Resize the conv2d_3 output to match the input image size
-    upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)  # (original width, original height)
+    # Visualize individual feature maps for debugging
+    st.write("Visualizing individual feature maps for debugging:")
+    fig, ax = plt.subplots(4, 8, figsize=(12, 6))
+    for i in range(32):
+        ax[i // 8, i % 8].imshow(conv2d_3_output[:, :, i], cmap='viridis')
+        ax[i // 8, i % 8].axis('off')
+    st.pyplot(fig)
 
-    # Average all the filters from conv2d_3 to get a single activation map
-    heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # Take the mean of the 32 filters, resulting in (original height, original width)
+    # Choose the most relevant feature maps based on visual inspection
+    selected_feature_maps = conv2d_3_output[:, :, :3]  # Use the first 3 feature maps as an example
+
+    # Average selected feature maps to get a single activation map
+    heat_map = np.mean(selected_feature_maps, axis=-1)  # Take the mean, resulting in (28, 28)
+
+    # Resize the heatmap to match the original image size
+    heat_map_resized = cv2.resize(heat_map, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
 
     # Normalize the heatmap for better visualization
-    heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
-    heat_map = heat_map / heat_map.max()  # Normalize to 0-1
+    heat_map_resized = np.maximum(heat_map_resized, 0)  # ReLU to eliminate negative values
+    heat_map_resized = heat_map_resized / heat_map_resized.max()  # Normalize to 0-1
 
     # Create a heatmap overlay using colormap
-    heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])  # Use a colormap (e.g., jet)
-
-    # Resize heatmap_colored to match original image dimensions if needed
-    heatmap_colored = cv2.resize(heatmap_colored, (orig_width, orig_height))
-
-    # Debugging: Display the heatmap without overlay
-    st.image(heatmap_colored, caption="Debug: Heatmap without Overlay", use_column_width=True)
+    heatmap_colored = np.uint8(255 * cm.jet(heat_map_resized)[:, :, :3])  # Use a colormap (e.g., jet)
 
     # Overlay the heatmap on the original image using alpha blending
     overlayed_img = cv2.addWeighted(original_img, 0.6, heatmap_colored, 0.4, 0)
 
+    # Debugging: Display the heatmap without overlay
+    st.image(heatmap_colored, caption="Debug: Heatmap without Overlay", use_column_width=True)
+
     # Threshold the heatmap to get the regions with the highest activation
     threshold = 0.5  # You can adjust this threshold
-    heat_map_thresh = np.uint8(255 * heat_map)  # Convert heatmap to 8-bit image
+    heat_map_thresh = np.uint8(255 * heat_map_resized)  # Convert heatmap to 8-bit image
     _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
 
     # Find contours in the thresholded heatmap
@@ -73,7 +81,7 @@ def process_and_predict_image(image):
 
     # Draw contours on the original image
     contoured_img = overlayed_img.copy()  # Copy image with heatmap
-    cv2.drawContours(contoured_img, contours, 2, (0, 255, 0), 2)  # Draw green contours (lines)
+    cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours (lines)
 
     # Get the predicted class name
     predicted_class = class_labels[pred]
