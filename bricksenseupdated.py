@@ -71,14 +71,26 @@ def process_and_predict_image(image):
         heatmap_image = Image.fromarray(heatmap_colored)
         contoured_image = Image.fromarray(contoured_img)
 
+        # Create an overlay image
+        # Convert heatmap to RGBA
+        heatmap_colored = np.concatenate([heatmap_colored, np.full((heat_map.shape[0], heat_map.shape[1], 1), 128, dtype=np.uint8)], axis=-1)
+        heatmap_image = Image.fromarray(heatmap_colored)
+        
+        # Overlay heatmap on original image
+        original_img_pil = Image.fromarray(original_img)
+        overlay_img = Image.blend(original_img_pil, heatmap_image.convert("RGBA"), alpha=0.5)  # Adjust alpha as needed
+        
+        # Convert overlay image to PIL format for Streamlit
+        overlay_image = overlay_img.convert("RGB")
+
         # Get the predicted class name
         predicted_class = class_labels[pred]
 
-        return heatmap_image, contoured_image, predicted_class
+        return heatmap_image, contoured_image, overlay_image, predicted_class
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
-        return None, None, None
+        return None, None, None, None
 
 
 # Streamlit app layout
