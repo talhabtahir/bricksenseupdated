@@ -37,41 +37,24 @@ def process_and_predict_image(image):
 
         # Get the conv2d_3 output and the predictions
         conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
+        conv2d_3_output = np.squeeze(conv2d_3_output)  # (28, 28, 32) feature maps
 
-        # Print shape for debugging
-        st.write("Shape of conv2d_3_output:", conv2d_3_output.shape)
-        conv2d_3_output = np.squeeze(conv2d_3_output)  # Remove batch dimension
-
-        # Check the shape after squeeze
-        st.write("Shape after squeeze:", conv2d_3_output.shape)
-
-        # Debugging: Check prediction vector
-        st.write("Prediction vector:", pred_vec)
-
-        # Ensure the shape of `pred_vec` is as expected
-        if pred_vec.shape[-1] != len(class_labels):
-            st.error(f"Unexpected shape of prediction vector: {pred_vec.shape}. Expected number of classes: {len(class_labels)}.")
-            return None, None, None
-        
         # Prediction for the image
         pred = np.argmax(pred_vec)
-        st.write(f"Predicted index: {pred}")
-
-        # Ensure the prediction index is within the valid range
-        if pred < 0 or pred >= len(class_labels):
-            st.error(f"Prediction index {pred} is out of range for class labels.")
-            return None, None, None
-
-        # Generate the heatmap
-        selected_feature_maps = conv2d_3_output[:, :, :3]  # Use the first 3 feature maps as an example
-        heat_map = np.mean(selected_feature_maps, axis=-1)
-        heat_map_resized = cv2.resize(heat_map, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
-        heat_map_resized = np.maximum(heat_map_resized, 0)
-        heat_map_resized = heat_map_resized / heat_map_resized.max()
         
-        # Threshold the heatmap
+        # Resize the conv2d_3 output to match the input image size
+        upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
+
+        # Average all the filters from conv2d_3 to get a single activation map
+        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # (224, 224)
+
+        # Normalize the heatmap for better visualization
+        heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
+        heat_map = heat_map / heat_map.max()  # Normalize to 0-1
+
+        # Threshold the heatmap to get the regions with the highest activation
         threshold = 0.5  # Adjust this threshold if needed
-        heat_map_thresh = np.uint8(255 * heat_map_resized)
+        heat_map_thresh = np.uint8(255 * heat_map)
         _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
 
         # Find contours in the thresholded heatmap
@@ -82,7 +65,7 @@ def process_and_predict_image(image):
         cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours
 
         # Convert the heatmap to RGB for display
-        heatmap_colored = np.uint8(255 * cm.jet(heat_map_resized)[:, :, :3])
+        heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])
         
         # Convert heatmap and contoured images to PIL format for Streamlit
         heatmap_image = Image.fromarray(heatmap_colored)
