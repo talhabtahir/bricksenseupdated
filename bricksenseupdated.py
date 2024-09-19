@@ -73,7 +73,7 @@ def process_and_predict_image(image):
 
     # Draw contours on the original image
     contoured_img = overlayed_img.copy()  # Copy image with heatmap
-    cv2.drawContours(contoured_img, contours, 1, (0, 255, 0), 2)  # Draw green contours (lines)
+    cv2.drawContours(contoured_img, contours, 2, (0, 255, 0), 2)  # Draw green contours (lines)
 
     # Get the predicted class name
     predicted_class = class_labels[pred]
