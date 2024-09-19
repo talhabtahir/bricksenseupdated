@@ -25,6 +25,7 @@ def process_and_predict_image(image):
         
         # Save original dimensions
         orig_height, orig_width, _ = original_img.shape
+        st.write(f"Original image dimensions: {orig_width}x{orig_height}")
 
         # Preprocess the image for the model
         img_resized = cv2.resize(original_img, (224, 224))
@@ -44,9 +45,11 @@ def process_and_predict_image(image):
         
         # Resize the conv2d_3 output to match the input image size
         upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
+        st.write(f"Upsampled conv2d_3 output dimensions: {orig_width}x{orig_height}")
 
         # Average all the filters from conv2d_3 to get a single activation map
         heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # (orig_height, orig_width)
+        st.write(f"Heatmap dimensions: {heat_map.shape[1]}x{heat_map.shape[0]}")
 
         # Normalize the heatmap for better visualization
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
@@ -70,17 +73,15 @@ def process_and_predict_image(image):
         # Convert heatmap and contoured images to PIL format for Streamlit
         heatmap_image = Image.fromarray(heatmap_colored)
         contoured_image = Image.fromarray(contoured_img)
-
-        # Create an overlay image
-        # Convert heatmap to RGBA
-        heatmap_colored_rgba = np.concatenate([heatmap_colored, np.full((orig_height, orig_width, 1), 128, dtype=np.uint8)], axis=-1)
-        heatmap_image_rgba = Image.fromarray(heatmap_colored_rgba, 'RGBA')
+        
+        # Ensure the images are in the same mode and size for blending
+        heatmap_image_rgba = heatmap_image.convert("RGBA")
+        original_img_pil = Image.fromarray(original_img).convert("RGBA")
         
         # Overlay heatmap on original image
-        original_img_pil = Image.fromarray(original_img)
         overlay_img = Image.blend(original_img_pil, heatmap_image_rgba, alpha=0.5)  # Adjust alpha as needed
         
-        # Convert overlay image to PIL format for Streamlit
+        # Convert overlay image to RGB for Streamlit
         overlay_image = overlay_img.convert("RGB")
 
         # Get the predicted class name
