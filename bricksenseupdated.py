@@ -36,20 +36,27 @@ def process_and_predict_image(image):
 
     # Get the conv2d_3 output and the predictions
     conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
-    conv2d_3_output = np.squeeze(conv2d_3_output)  # 28x28x32 feature maps
 
-    # Prediction for the image
-    pred = np.argmax(pred_vec)
+    # Print shape for debugging
+    st.write("Shape of conv2d_3_output:", conv2d_3_output.shape)
+    conv2d_3_output = np.squeeze(conv2d_3_output)  # Remove batch dimension
 
-    # Visualize individual feature maps for debugging
-    st.write("Visualizing individual feature maps for debugging:")
-    fig, ax = plt.subplots(4, 8, figsize=(12, 6))
-    for i in range(32):
-        ax[i // 8, i % 8].imshow(conv2d_3_output[:, :, i], cmap='viridis')
-        ax[i // 8, i % 8].axis('off')
-    st.pyplot(fig)
+    # Check the shape after squeeze
+    st.write("Shape after squeeze:", conv2d_3_output.shape)
+    
+    # Visualize individual feature maps for debugging if shape is as expected
+    if len(conv2d_3_output.shape) == 3:
+        num_feature_maps = conv2d_3_output.shape[-1]
+        st.write(f"Visualizing {num_feature_maps} feature maps:")
+        fig, ax = plt.subplots(4, 8, figsize=(12, 6))
+        for i in range(num_feature_maps):
+            ax[i // 8, i % 8].imshow(conv2d_3_output[:, :, i], cmap='viridis')
+            ax[i // 8, i % 8].axis('off')
+        st.pyplot(fig)
+    else:
+        st.write("Unexpected feature map shape. Unable to visualize individual maps.")
 
-    # Choose the most relevant feature maps based on visual inspection
+    # Select some feature maps for averaging
     selected_feature_maps = conv2d_3_output[:, :, :3]  # Use the first 3 feature maps as an example
 
     # Average selected feature maps to get a single activation map
