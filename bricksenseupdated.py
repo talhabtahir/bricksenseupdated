@@ -46,7 +46,7 @@ def process_and_predict_image(image):
         upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
 
         # Average all the filters from conv2d_3 to get a single activation map
-        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # (224, 224)
+        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # (orig_height, orig_width)
 
         # Normalize the heatmap for better visualization
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
@@ -73,12 +73,12 @@ def process_and_predict_image(image):
 
         # Create an overlay image
         # Convert heatmap to RGBA
-        heatmap_colored = np.concatenate([heatmap_colored, np.full((heat_map.shape[0], heat_map.shape[1], 1), 128, dtype=np.uint8)], axis=-1)
-        heatmap_image = Image.fromarray(heatmap_colored)
+        heatmap_colored_rgba = np.concatenate([heatmap_colored, np.full((orig_height, orig_width, 1), 128, dtype=np.uint8)], axis=-1)
+        heatmap_image_rgba = Image.fromarray(heatmap_colored_rgba, 'RGBA')
         
         # Overlay heatmap on original image
         original_img_pil = Image.fromarray(original_img)
-        overlay_img = Image.blend(original_img_pil, heatmap_image.convert("RGBA"), alpha=0.5)  # Adjust alpha as needed
+        overlay_img = Image.blend(original_img_pil, heatmap_image_rgba, alpha=0.5)  # Adjust alpha as needed
         
         # Convert overlay image to PIL format for Streamlit
         overlay_image = overlay_img.convert("RGB")
