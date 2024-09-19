@@ -62,37 +62,38 @@ def process_and_predict_image(image):
 
         # Convert heatmap to RGB for display
         heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])
+        
+        # Convert heatmap to PIL format
         heatmap_image = Image.fromarray(heatmap_colored)
         
-        # Convert contours to an image
-        contours_image = np.zeros_like(original_img)  # Black background
-        cv2.drawContours(contours_image, contours, -1, (0, 255, 0), 2)  # Draw green contours
-        contours_image = Image.fromarray(contours_image)
+        # Create contoured image
+        contoured_img = original_img.copy()  # Copy original image
+        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours
+        
+        # Convert contoured image to PIL format
+        contoured_image = Image.fromarray(contoured_img)
 
-        # Create combined image with heatmap and contours
+        # Overlay heatmap on original image
         heatmap_image_rgba = heatmap_image.convert("RGBA")
         original_img_pil = Image.fromarray(original_img).convert("RGBA")
-        
-        # Blend heatmap with the original image
         heatmap_overlay = Image.blend(original_img_pil, heatmap_image_rgba, alpha=0.5)
-        
-        # Convert the blended image to numpy array for drawing contours
-        heatmap_overlay_np = np.array(heatmap_overlay)
-        
+
         # Draw contours on the heatmap-overlayed image
+        heatmap_overlay_np = np.array(heatmap_overlay)
         cv2.drawContours(heatmap_overlay_np, contours, -1, (0, 255, 0), 2)  # Draw green contours
-        
-        # Convert back to PIL format for Streamlit
-        combined_image = Image.fromarray(heatmap_overlay_np)
+
+        # Convert overlay image to PIL format
+        overlay_image = Image.fromarray(heatmap_overlay_np)
 
         # Get the predicted class name
         predicted_class = class_labels[pred]
 
-        return heatmap_image, contours_image, combined_image, predicted_class
+        return heatmap_image, contoured_image, overlay_image, predicted_class
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
         return None, None, None, None
+
 
 
 
