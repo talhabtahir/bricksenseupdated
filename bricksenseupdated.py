@@ -114,7 +114,7 @@ def load_model(model_name):
         st.error(f"Failed to load {model_name}: {e}")
         return None
 
-Load the selected model
+# Load the selected model
 model = load_model(model_option)
 #__________________________________________________________________________________________________________________________________________________________________________________
 # #For single model selection
