@@ -1,4 +1,4 @@
-import streamlit as st
+iimport streamlit as st
 import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags, ImageEnhance
 import numpy as np
@@ -330,7 +330,7 @@ else:
                 """, unsafe_allow_html=True)
 
                 # st.write("")  # Creates a blank line
-                
+                sensitivity=9
                 # Display Layer info for selected model in two columns
                 col1, col2 = st.columns(2)
                 with col1:
