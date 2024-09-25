@@ -53,7 +53,7 @@ st.set_page_config(
 #     return base64.b64encode(buffered.getvalue()).decode()
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo1.png")
-st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your logo file
+st.image(imagelogo, use_column_width=False, width=200)  # Update the path to your logo file
 # # Use the helper function to encode the image
 # encoded_logo = image_to_base64(imagelogo)
 
@@ -329,9 +329,15 @@ else:
                     </div>
                 """, unsafe_allow_html=True)
 
-                st.write("")  # Creates a blank line
-
                 # st.write("")  # Creates a blank line
+                
+                # Display Layer info for selected model in two columns
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write(f"Layer Name: ",model.layers[sensitivity].name)
+                
+                with col2:
+                    st.write(f"Layer Shape: ",model.layers[sensitivity].output.shape)
 
                 # Create an expander for sensitivity adjustment
                 with st.expander("🔍 Sensitivity Settings"):
@@ -344,9 +350,8 @@ else:
                         step=1,        # Step for incremental changes
                         format="%.1f"    # Format to display sensitivity with one decimal
                                             )
-                #layer name
-                st.write(f"Layer Name: ",model.layers[sensitivity].name)
-                st.write(f"Layer Shape: ",model.layers[sensitivity].output.shape)
+                           
+                
 
                 # Perform prediction again
                 # predictions, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img  = import_and_predict(image, sensitivity=sensitivity)
