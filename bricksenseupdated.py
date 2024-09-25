@@ -52,7 +52,7 @@ st.set_page_config(
 #     img.save(buffered, format="PNG")
 #     return base64.b64encode(buffered.getvalue()).decode()
 # Display logo instead of header
-imagelogo = Image.open("static/sidelogo.png")
+imagelogo = Image.open("static/sidelogo1.png")
 st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your logo file
 # # Use the helper function to encode the image
 # encoded_logo = image_to_base64(imagelogo)
@@ -92,7 +92,7 @@ model_option = st.selectbox(
 # st.write(f"Selected Model: {model_option}")
 
 # Sidebar navigation with icons
-st.sidebar.image("static/sidelogo.png", width=200, use_column_width=True)
+st.sidebar.image("static/sidelogo1.png", width=200, use_column_width=True)
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
