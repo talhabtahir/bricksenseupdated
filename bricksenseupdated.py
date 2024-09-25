@@ -185,7 +185,7 @@ def add_canvas(image, fill_color=(255, 255, 255)):
 
 
 # Function to localize the crack and to make predictions using the TensorFlow model
-def import_and_predict(image_data, sensitivity=9):
+def import_and_predict(image_data, model=model, sensitivity=9):
     try:
         # Convert image to numpy array
         original_img = np.array(image_data)
@@ -367,7 +367,7 @@ else:
                     model = load_model_by_name(model_name)
                     
                     # Perform prediction for the current model
-                    predictions, _, _, _, _, overlay_img = import_and_predict(image, model=model)
+                    predictions, _, _, _, _, overlay_img = import_and_predict(image, model=model, sensitivity=sensitivity)
                     overlay_images.append(overlay_img)
     
                 # Display overlay images for each model in two columns
