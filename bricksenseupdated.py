@@ -389,7 +389,7 @@ else:
 
                 with col3:
                     st.image(overlay_images[4], caption=f"Model: {model_names[4]}", use_column_width=True)
-                    # st.image(overlay_images[2], caption=f"Model: {model_names[2]}", use_column_width=True)
+                    st.write("")
                
 
                
