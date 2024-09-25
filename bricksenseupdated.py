@@ -377,7 +377,7 @@ else:
                     overlay_images.append(overlay_img)
     
                 # Display overlay images for each model in two columns
-                col1, col2, col3= st.columns(4)
+                col1, col2, col3= st.columns(3)
     
                 with col1:
                     st.image(overlay_images[0], caption=f"Model: {model_names[0]}", use_column_width=True)
