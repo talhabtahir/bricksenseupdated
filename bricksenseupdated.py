@@ -274,9 +274,15 @@ def import_and_predict(image_data, sensitivity=9):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None, None, None, None, None
-        
-# Adds border to the image
 
+# Function to load the model based on its name
+def load_model_by_name(model_name):
+    """Load the model based on the given model name."""
+    model_path = f"./{model_name}"  # Adjust the path as needed
+    model = tf.keras.models.load_model(model_path)
+    return model
+
+# Adds border to the image
 def add_white_border(image, border_size):
     """Add a white border to the image."""
     return ImageOps.expand(image, border= border_size, fill=(255, 255, 255))
