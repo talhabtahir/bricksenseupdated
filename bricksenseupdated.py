@@ -74,14 +74,14 @@ st.write("")  # Creates a blank line
 # st.write(" ")  # Creates an extra line for more space
 # st.write(" ")  # Adjust the number of empty lines for desired spacing
 
-# Custom CSS to adjust the width of the selectbox
-st.markdown("""
-    <style>
-    .stSelectbox > div:first-child {
-        width: 100px !important;  /* Adjust this value to change the width */
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# # Custom CSS to adjust the width of the selectbox
+# st.markdown("""
+#     <style>
+#     .stSelectbox > div:first-child {
+#         width: 100px !important;  /* Adjust this value to change the width */
+#     }
+#     </style>
+#     """, unsafe_allow_html=True)
 # Add a dropdown for model selection
 model_option = st.selectbox(    
     "Choose a model for prediction:",
@@ -114,7 +114,7 @@ def load_model(model_name):
         st.error(f"Failed to load {model_name}: {e}")
         return None
 
-# Load the selected model
+Load the selected model
 model = load_model(model_option)
 #__________________________________________________________________________________________________________________________________________________________________________________
 # #For single model selection
@@ -298,7 +298,7 @@ else:
             
             
             # Perform prediction
-            predictions, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img  = import_and_predict(image)
+            predictions, _, _, _, _, _  = import_and_predict(image)
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
                 prediction_percentages = predictions[0] * 100
@@ -343,244 +343,43 @@ else:
                 st.write(f"Layer Shape: ",model.layers[sensitivity].output.shape)
 
                 # Perform prediction again
-                predictions, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img  = import_and_predict(image, sensitivity=sensitivity)
+                # predictions, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img  = import_and_predict(image, sensitivity=sensitivity)
 
-                #in one row
-                col1, col2, col3, col4 = st.columns(4)
-                
+                # Define the models to compare
+                model_names = [
+                "230kmodelv12_version_cam_2", 
+                "230kmodelv11_version_cam_2", 
+                "170kmodelv10_version_cam_1", 
+                "Kg_33kmodelv36_basev4"
+                ]
+    
+                overlay_images = []
+    
+                # Iterate over each model, perform prediction, and get overlay image
+                for model_name in model_names:
+                    # Set the model to be used
+                    model = load_model_by_name(model_name)
+                    
+                    # Perform prediction for the current model
+                    predictions, _, _, _, _, overlay_img = import_and_predict(image, model=model)
+                    overlay_images.append(overlay_img)
+    
+                # Display overlay images for each model in two columns
+                col1, col2 = st.columns(2)
+    
                 with col1:
-                    st.image(image, caption="Uploaded Image", use_column_width=True)
+                    st.image(overlay_images[0], caption=f"Model: {model_names[0]}", use_column_width=True)
+                    st.image(overlay_images[2], caption=f"Model: {model_names[2]}", use_column_width=True)
                 
                 with col2:
-                    if predicted_class == 1:
-                        st.image(contoured_image, caption="Crack(s) Location", use_column_width=True)
-                    elif predicted_class == 0:
-                        st.image(image, caption="No cracks detected", use_column_width=True)
-                    else:
-                        st.image(image, caption="No wall detected", use_column_width=True)
-                        
-                with col3:
-                    if predicted_class == 1:
-                        st.image(heatmap_image, caption="Crack(s) Heatmap", use_column_width=True)
-                    elif predicted_class == 0:
-                        st.image(image, caption="No cracks detected", use_column_width=True)
-                    else:
-                        st.image(image, caption="No wall detected", use_column_width=True)
-                
-                with col4:
-                    if predicted_class == 1:
-                        st.image(overlay_img, caption="Crack(s) Localization", use_column_width=True)
-                    elif predicted_class == 0:
-                        st.image(image, caption="No cracks detected", use_column_width=True)
-                    else:
-                        st.image(image, caption="No wall detected", use_column_width=True)
-                
-                
-                # #In two rows
-                # # First row with two columns
-                # col1, col2 = st.columns(2)
-                
-                # with col1:
-                #     st.image(image, caption="Uploaded Image", use_column_width=True)
-                
-                # with col2:
-                #     if predicted_class == 1:
-                #         st.image(contoured_image, caption="Crack(s) Location", use_column_width=True)
-                #     elif predicted_class == 0:
-                #         st.image(image, caption="No cracks detected", use_column_width=True)
-                #     else:
-                #         st.image(image, caption="No wall detected", use_column_width=True)
-                
-                # # Second row with two columns
-                # col3, col4 = st.columns(2)
-                
-                # with col3:
-                #     if predicted_class == 1:
-                #         st.image(heatmap_image, caption="Crack(s) Heatmap", use_column_width=True)
-                #     elif predicted_class == 0:
-                #         st.image(image, caption="No cracks detected", use_column_width=True)
-                #     else:
-                #         st.image(image, caption="No wall detected", use_column_width=True)
-                
-                # with col4:
-                #     if predicted_class == 1:
-                #         st.image(overlay_img, caption="Crack(s) Localization", use_column_width=True)
-                #     elif predicted_class == 0:
-                #         st.image(image, caption="No cracks detected", use_column_width=True)
-                #     else:
-                #         st.image(image, caption="No wall detected", use_column_width=True)
+                    st.image(overlay_images[1], caption=f"Model: {model_names[1]}", use_column_width=True)
+                    st.image(overlay_images[3], caption=f"Model: {model_names[3]}", use_column_width=True)
 
-
-
+               
 
                
                 
-                image_with_border = add_canvas(image_with_border)
-                contours_with_border = add_canvas(contours_with_border)               
-                # st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
-                # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
-                # st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
-                st.write("")  # Creates a blank line
-                if st.checkbox("Original vs Cracked Slider"):
-                    # HTML/CSS for centering the image comparison component
-                    center_style = """
-                    <style>
-                    .centered-image-container {
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                    }
-                    </style>
-                    """
-                    st.markdown(center_style, unsafe_allow_html=True)
-                    
-                    # Opening div tag to center the image comparison component
-                    st.markdown('<div class="centered-image-container">', unsafe_allow_html=True)
-                    
-                    # Conditionally display image comparison
-                    if predicted_class == 1:
-                        image_comparison(
-                            img1=image_with_border, 
-                            img2=contours_with_border,
-                            label1="Uploaded Image",
-                            label2="Cracks Localization",
-                            show_labels=False,
-                        )
-                    else:
-                        image_comparison(
-                            img1=image_with_border, 
-                            img2=image_with_border,
-                            label1="Uploaded Image",
-                            label2="Cracks Localization",
-                            show_labels=False,
-                        )
-                
-                    # Closing div tag
-                    st.markdown('</div>', unsafe_allow_html=True)
-                            
-                # if st.checkbox("Original vs Cracked Slider"):
-                #         # Conditionally display image comparison
-                #         if predicted_class == 1:
-                #             image_comparison(
-                #                 img1=image_with_border, 
-                #                 img2=contours_with_border,
-                #                 label1="Uploaded Image",
-                #                 label2="Cracks Localization",
-                #                 show_labels=False,
-                #                 # width=670,
-                #                 # make_responsive=True,
-                #                 # in_memory=True
-                #             )
-                #         else:
-                #            image_comparison(
-                #                 img1=image_with_border, 
-                #                 img2=image_with_border,
-                #                 label1="Uploaded Image",
-                #                 label2="Cracks Localization",
-                #                 show_labels=False,
-                #                 # width=670,
-                #                 # make_responsive=True,
-                #                 # in_memory=True
-                #             )
-
-                # # Conditionally display image comparison
-                # if predicted_class == 1:
-                #     st.markdown(
-                #         """
-                #         <div style='display: flex; justify-content: center; align-items: center;'>
-                #         """, 
-                #         unsafe_allow_html=True
-                #     )
-                #     image_comparison(
-                #         img1=image_with_border, 
-                #         img2=contours_with_border,
-                #         label1="Uploaded Image",
-                #         label2="Cracks Localization",
-                #         show_labels=False,
-                #         # width=670,
-                #         make_responsive=True,
-                #         in_memory=True
-                #     )
-                #     st.markdown("</div>", unsafe_allow_html=True)
-                # else:
-                #     st.markdown(
-                #         """
-                #         <div style='display: flex; justify-content: center; align-items: center;'>
-                #         """, 
-                #         unsafe_allow_html=True
-                #     )
-                #     image_comparison(
-                #         img1=image_with_border, 
-                #         img2=image_with_border,
-                #         label1="Uploaded Image",
-                #         label2="Cracks Localization",
-                #         show_labels=False,
-                #         # width=670,
-                #         make_responsive=True,
-                #         in_memory=True
-                #     )
-                #     st.markdown("</div>", unsafe_allow_html=True)
-
-                # with st.expander("Original vs Cracked Slider"):
-                #     # Define a maximum width for the images based on a rough estimate or browser inspection
-                #     max_width = 670  # Adjust this based on what you see in browser inspection
-                
-                #     # Resize image accordingly to fit within the expander's width
-                #     img1_resized = image_with_border.resize((max_width, int(image_with_border.height * (max_width / image_with_border.width))))
-                #     img2_resized = contours_with_border.resize((max_width, int(contours_with_border.height * (max_width / contours_with_border.width))))
-
-                #     # HTML/CSS for centering the images
-                #     center_style = """
-                #     <style>
-                #     .centered-image-container {
-                #         display: flex;
-                #         justify-content: center;
-                #         align-items: center;
-                #     }
-                #     </style>
-                #     """
-                #     st.markdown(center_style, unsafe_allow_html=True)
-                
-                #     # Conditionally display image comparison
-                #     if predicted_class == 1:
-                #         # Use a centered container div for image comparison
-                #         st.markdown('<div class="centered-image-container">', unsafe_allow_html=True)
-                #         image_comparison(
-                #             img1=img1_resized, 
-                #             img2=img2_resized,
-                #             label1="Uploaded Image",
-                #             label2="Cracks Localization",
-                #             show_labels=False
-                #         )
-                #         st.markdown('</div>', unsafe_allow_html=True)
-                #     else:
-                #         # Use a centered container div for the same image comparison
-                #         st.markdown('<div class="centered-image-container">', unsafe_allow_html=True)
-                #         image_comparison(
-                #             img1=img1_resized, 
-                #             img2=img1_resized,
-                #             label1="Uploaded Image",
-                #             label2="Cracks Localization",
-                #             show_labels=False
-                #         )
-                #         st.markdown('</div>', unsafe_allow_html=True)
-                    # # Conditionally display image comparison
-                    # if predicted_class == 1:
-                    #     image_comparison(
-                    #         img1=image_with_border, 
-                    #         img2=contours_with_border,
-                    #         label1="Uploaded Image",
-                    #         label2="Cracks Localization",
-                    #         show_labels=False
-                    #     )
-                    # else:
-                    #     image_comparison(
-                    #         img1=image_with_border, 
-                    #         img2=image_with_border,
-                    #         label1="Uploaded Image",
-                    #         label2="Cracks Localization",
-                    #         show_labels=False
-                    #     )
+                               
 
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
