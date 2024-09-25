@@ -278,7 +278,7 @@ def import_and_predict(image_data, sensitivity=9):
 # Function to load the model based on its name
 def load_model_by_name(model_name):
     """Load the model based on the given model name."""
-    model_path = f"./{model_name}"  # Adjust the path as needed
+    model_path = f"{model_name}"  # Adjust the path as needed
     model = tf.keras.models.load_model(model_path)
     return model
 
