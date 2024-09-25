@@ -85,7 +85,7 @@ st.write("")  # Creates a blank line
 # Add a dropdown for model selection
 model_option = st.selectbox(    
     "Choose a model for prediction:",
-    ("230kmodelv12_version_cam_2" ,"230kmodelv11_version_cam_2", "170kmodelv10_version_cam_1", "v11model_cp_epoch_14", "v12model_cp_epoch_10")
+    ("230kmodelv13_version_cam_3","230kmodelv12_version_cam_2" ,"230kmodelv11_version_cam_2", "170kmodelv10_version_cam_1", "v11model_cp_epoch_14", "v12model_cp_epoch_10")
 )
 
 # Show selected model below the logo
@@ -362,7 +362,8 @@ else:
                 "230kmodelv11_version_cam_2",
                 "v12model_cp_epoch_10",
                 "v11model_cp_epoch_14",
-                "170kmodelv10_version_cam_1"
+                "170kmodelv10_version_cam_1",
+                "230kmodelv13_version_cam_3"
                 ]
     
                 overlay_images = []
@@ -389,8 +390,7 @@ else:
 
                 with col3:
                     st.image(overlay_images[4], caption=f"{model_names[4]}", use_column_width=True)
-                    st.write("")
-               
+                    st.image(overlay_images[5], caption=f"{model_names[5]}", use_column_width=True)               
 
                
                 
