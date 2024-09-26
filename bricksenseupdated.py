@@ -369,7 +369,7 @@ else:
                 })
         
             # Convert the results into a DataFrame for display
-            df = pd.DataFrame(model_results, index =False)
+            df = pd.DataFrame(model_results)
             # Reset the index without adding the old index as a column
             df = df.reset_index(drop=True)
             # Insert a serial number (S.N.) column at the beginning
