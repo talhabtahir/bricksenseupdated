@@ -380,20 +380,28 @@ else:
             # Add CSS to center the table
             centered_table = f"""
             <style>
-                table {{
+                .center-table {{
                     margin-left: auto;
                     margin-right: auto;
+                    text-align: center;
+                    width: 50%;
+                }}
+                table {{
+                    width: 100%;
                     border-collapse: collapse;
                 }}
                 th, td {{
                     text-align: center;
                     padding: 8px;
+                    border: 1px solid #ddd;
                 }}
                 th {{
                     background-color: #f2f2f2;
                 }}
             </style>
-            {html_table}
+            <div class="center-table">
+                {html_table}
+            </div>
             """
         
             # Render the table in Streamlit using markdown
