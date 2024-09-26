@@ -379,7 +379,7 @@ else:
 
             # Add CSS to center the table
             centered_table = f"""
-            <div style="display: flex; justify-content: center;">
+            <div style="display: block; margin-left: auto; margin-right: auto; width: 50%;">
                 {html_table}
             </div>
             """
