@@ -386,6 +386,9 @@ else:
             overlay_images = []
             for model_name in model_names:
                 model = load_model_by_name(model_name)
+                if sensitivity >= len(model.layers):
+                        # st.warning(f"Sensitivity value exceeds available layers for {model_name}. Maximum layer is {len(model.layers)-1}.")
+                        continue  # Skip the model if the sensitivity exceeds available layers
                 _, _, _, _, _, overlay_img = import_and_predict(image, model=model, sensitivity=sensitivity)
                 overlay_images.append(overlay_img)
                 
