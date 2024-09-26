@@ -377,18 +377,17 @@ else:
             # Convert the DataFrame to HTML without the index
             html_table = df.to_html(index=False, classes='table table-bordered', escape=False)
 
-            # Add CSS to center the table
+            # Add CSS for centering the table and controlling its width
             centered_table = f"""
             <style>
                 .center-table {{
-                    margin-left: auto;
-                    margin-right: auto;
-                    text-align: center;
-                    width: 50%;
+                    display: flex;
+                    justify-content: center;
+                    margin: 20px 0;  /* Add some margin for spacing */
                 }}
                 table {{
-                    width: 100%;
                     border-collapse: collapse;
+                    width: 80%;  /* Set a reasonable width for the table */
                 }}
                 th, td {{
                     text-align: center;
