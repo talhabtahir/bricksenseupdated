@@ -386,25 +386,23 @@ else:
             overlay_images = []
             for model_name in model_names:
                 model = load_model_by_name(model_name)
-                if len(model.layers)<=sensitivity:
-                    _, _, _, _, _, overlay_img = import_and_predict(image, model=model, sensitivity=sensitivity)
-                    overlay_images.append(overlay_img)
-                else:
-                    continue
+                _, _, _, _, _, overlay_img = import_and_predict(image, model=model, sensitivity=sensitivity)
+                overlay_images.append(overlay_img)
+                
         
             # Display overlay images for each model in two columns
             col1, col2, col3 = st.columns(3)
         
             with col1:
-                st.image(overlay_images[0], caption=f"{model_names[0]}", use_column_width=True)
+                # st.image(overlay_images[0], caption=f"{model_names[0]}", use_column_width=True)
                 st.image(overlay_images[3], caption=f"{model_names[3]}", use_column_width=True)
             
             with col2:
-                st.image(overlay_images[1], caption=f"{model_names[1]}", use_column_width=True)
+                # st.image(overlay_images[1], caption=f"{model_names[1]}", use_column_width=True)
                 st.image(overlay_images[4], caption=f"{model_names[4]}", use_column_width=True)
         
             with col3:
-                st.image(overlay_images[2], caption=f"{model_names[2]}", use_column_width=True)
+                # st.image(overlay_images[2], caption=f"{model_names[2]}", use_column_width=True)
                 st.image(overlay_images[5], caption=f"{model_names[5]}", use_column_width=True)
         
         except Exception as e:
