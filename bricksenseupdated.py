@@ -376,6 +376,13 @@ else:
 
             # Convert the DataFrame to HTML without the index
             html_table = df.to_html(index=False, classes='table table-bordered', escape=False)
+
+            # Add CSS to center the table
+            centered_table = f"""
+            <div style="display: flex; justify-content: center;">
+                {html_table}
+            </div>
+            """
         
             # Render the table in Streamlit using markdown
             st.markdown(html_table, unsafe_allow_html=True)
