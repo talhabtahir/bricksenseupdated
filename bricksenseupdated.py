@@ -369,7 +369,7 @@ else:
                 })
         
             # Convert the results into a DataFrame for display
-            df = pd.DataFrame(model_results)
+            df = pd.DataFrame(model_results, index =False)
 
             # Insert a serial number (S.N.) column at the beginning
             df.insert(0, "S.N.", range(1, len(df) + 1))
