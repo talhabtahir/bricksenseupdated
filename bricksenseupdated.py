@@ -84,10 +84,10 @@ st.write("")  # Creates a blank line
 #     </style>
 #     """, unsafe_allow_html=True)
 # Add a dropdown for model selection
-model_option = st.selectbox(    
-    "Choose a model for prediction:",
-    ("230kmodelv13_version_cam_3","230kmodelv12_version_cam_2" ,"230kmodelv11_version_cam_2", "170kmodelv10_version_cam_1", "v11model_cp_epoch_14", "v12model_cp_epoch_10")
-)
+# model_option = st.selectbox(    
+#     "Choose a model for prediction:",
+#     ("230kmodelv13_version_cam_3","230kmodelv12_version_cam_2" ,"230kmodelv11_version_cam_2", "170kmodelv10_version_cam_1", "v11model_cp_epoch_14", "v12model_cp_epoch_10")
+# )
 
 # Show selected model below the logo
 # st.write(f"Selected Model: {model_option}")
