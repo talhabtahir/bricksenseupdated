@@ -307,8 +307,8 @@ else:
                 # "230kmodelv11_version_cam_2",
                 # "230kmodelv12_version_cam_2",
                 # "230kmodelv13_version_cam_3",
-                "230kmodelv141_version_cam_3",
-                "230kmodelv142_version_cam_3",
+                # "230kmodelv141_version_cam_3",
+                # "230kmodelv142_version_cam_3",
                 "230kmodelv143_version_cam_3"
             ]
         
@@ -399,7 +399,7 @@ else:
             with col1:
                 st.image(overlay_images[0], caption=f"{model_names[0]}", use_column_width=True)
                 # st.image(overlay_images[3], caption=f"{model_names[3]}", use_column_width=True)
-                st.write("")  # Creates a blank line
+                st.write(len(model.layers))  # Creates a blank line
 
             
             with col2:
