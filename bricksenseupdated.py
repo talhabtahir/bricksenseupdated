@@ -386,8 +386,11 @@ else:
             overlay_images = []
             for model_name in model_names:
                 model = load_model_by_name(model_name)
-                _, _, _, _, _, overlay_img = import_and_predict(image, model=model, sensitivity=sensitivity)
-                overlay_images.append(overlay_img)
+                if len(model.layers)<=sensitivity:
+                    _, _, _, _, _, overlay_img = import_and_predict(image, model=model, sensitivity=sensitivity)
+                    overlay_images.append(overlay_img)
+                else:
+                    continue
         
             # Display overlay images for each model in two columns
             col1, col2, col3 = st.columns(3)
