@@ -379,9 +379,21 @@ else:
 
             # Add CSS to center the table
             centered_table = f"""
-            <div style="display: block; margin-left: auto; margin-right: auto; width: 50%;">
-                {html_table}
-            </div>
+            <style>
+                table {{
+                    margin-left: auto;
+                    margin-right: auto;
+                    border-collapse: collapse;
+                }}
+                th, td {{
+                    text-align: center;
+                    padding: 8px;
+                }}
+                th {{
+                    background-color: #f2f2f2;
+                }}
+            </style>
+            {html_table}
             """
         
             # Render the table in Streamlit using markdown
