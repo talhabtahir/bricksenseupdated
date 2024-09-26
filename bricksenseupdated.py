@@ -396,15 +396,19 @@ else:
             with col1:
                 st.image(overlay_images[0], caption=f"{model_names[0]}", use_column_width=True)
                 # st.image(overlay_images[3], caption=f"{model_names[3]}", use_column_width=True)
+                st.write("")  # Creates a blank line
+
             
             with col2:
                 st.image(overlay_images[1], caption=f"{model_names[1]}", use_column_width=True)
                 # st.image(overlay_images[4], caption=f"{model_names[4]}", use_column_width=True)
-        
+                st.write("")  # Creates a blank line
+
             with col3:
                 st.image(overlay_images[2], caption=f"{model_names[2]}", use_column_width=True)
                 # st.image(overlay_images[5], caption=f"{model_names[5]}", use_column_width=True)
-        
+                st.write("")  # Creates a blank line
+
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
         # try:
