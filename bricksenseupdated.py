@@ -373,8 +373,7 @@ else:
 
             # Insert a serial number (S.N.) column at the beginning
             df.insert(0, "S.N.", range(1, len(df) + 1))
-            # Reset the index without adding the old index as a column
-            df = df.reset_index(drop=True)
+            
             # Display the DataFrame in a tabular format
             st.table(df)
         
