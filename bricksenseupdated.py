@@ -300,104 +300,209 @@ else:
             
             # Correct the orientation if necessary
             image = correct_orientation(image)
-
-            
-            
-            # Perform prediction
-            predictions, _, _, _, _, _  = import_and_predict(image)
-            if predictions is not None:
-                predicted_class = np.argmax(predictions)
-                prediction_percentages = predictions[0] * 100
-
-                 # Display prediction result
-                if predicted_class == 0:
-                    st.success(f"✅ This is a normal brick wall.")
-                elif predicted_class == 1:
-                    st.error(f"❌ This wall is a cracked brick wall. ")
-                elif predicted_class == 2:
-                    st.warning(f"⚠️ This is not a brick wall.")
-                else:
-                    st.error(f"❓ Unknown prediction result: {predicted_class}")
-
-                st.write(f"**Prediction Percentages:**")
-                # Display predictions in one line
-                st.markdown(f"""
-                    <div style="display: flex; justify-content: space-between; font-size: 14px; color: #e0e0e0; background-color: #808080; padding: 3px; border-radius: 9px;">
-                        <div style="text-align: center; flex: 1;">🟢 <strong>Normal Wall:</strong> {prediction_percentages[0]:.2f}%</div>
-                        <div style="text-align: center; flex: 1;">🔴 <strong>Cracked Wall:</strong> {prediction_percentages[1]:.2f}%</div>
-                        <div style="text-align: center; flex: 1;">🟠 <strong>Not a Wall:</strong> {prediction_percentages[2]:.2f}%</div>
-                    </div>
-                """, unsafe_allow_html=True)
-
-                # st.write("")  # Creates a blank line
-             
-                # Create an expander for sensitivity adjustment
-                with st.expander("🔍 Sensitivity Settings"):
-                    # Add a slider for selecting the sensitivity dynamically
-                    sensitivity = st.slider(
-                        "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
-                        min_value=0,   # Minimum value for sensitivity
-                        max_value=12,   # Maximum value for sensitivity
-                        value=9,       # Default value for sensitivity
-                        step=1,        # Step for incremental changes
-                        format="%.1f"    # Format to display sensitivity with one decimal
-                                            )
-                # layers name based on slider  
-                layername= model.layers[sensitivity].name
-                layershape= model.layers[sensitivity].output.shape
-                # Display Layer info for selected model in two columns
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.write(f"Layer Name: ",layername)
-                
-                with col2:
-                    st.write(f"Layer Shape: ",layershape)
-
-                # Perform prediction again
-                # predictions, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img  = import_and_predict(image, sensitivity=sensitivity)
-
-                # Define the models to compare
-                model_names = [
+        
+            # Define the models to compare
+            model_names = [
                 "230kmodelv12_version_cam_2", 
                 "230kmodelv11_version_cam_2",
                 "v12model_cp_epoch_10",
                 "v11model_cp_epoch_14",
                 "170kmodelv10_version_cam_1",
                 "230kmodelv13_version_cam_3"
-                ]
-    
-                overlay_images = []
-    
-                # Iterate over each model, perform prediction, and get overlay image
-                for model_name in model_names:
-                    # Set the model to be used
-                    model = load_model_by_name(model_name)
-                    
-                    # Perform prediction for the current model
-                    predictions, _, _, _, _, overlay_img = import_and_predict(image, model=model, sensitivity=sensitivity)
-                    overlay_images.append(overlay_img)
-    
-                # Display overlay images for each model in two columns
-                col1, col2, col3= st.columns(3)
-    
-                with col1:
-                    st.image(overlay_images[0], caption=f"{model_names[0]}", use_column_width=True)
-                    st.image(overlay_images[2], caption=f"{model_names[2]}", use_column_width=True)
+            ]
+        
+            # Initialize list for storing model results
+            model_results = []
+        
+            # Create an expander for sensitivity adjustment
+            with st.expander("🔍 Sensitivity Settings"):
+                # Add a slider for selecting the sensitivity dynamically
+                sensitivity = st.slider(
+                    "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
+                    min_value=0,   # Minimum value for sensitivity
+                    max_value=12,   # Maximum value for sensitivity
+                    value=9,       # Default value for sensitivity
+                    step=1,        # Step for incremental changes
+                    format="%.1f"  # Format to display sensitivity with one decimal
+                )
+        
+            # Iterate over each model, perform prediction, and get required information
+            for model_name in model_names:
+                # Set the model to be used
+                model = load_model_by_name(model_name)
                 
-                with col2:
-                    st.image(overlay_images[1], caption=f"{model_names[1]}", use_column_width=True)
-                    st.image(overlay_images[3], caption=f"Model: {model_names[3]}", use_column_width=True)
+                # Perform prediction for the current model
+                predictions, _, _, _, _, overlay_img = import_and_predict(image, model=model, sensitivity=sensitivity)
+                
+                # Calculate prediction percentages
+                prediction_percentages = predictions[0] * 100
+                
+                # Determine predicted class
+                predicted_class = np.argmax(predictions)
+                if predicted_class == 0:
+                    prediction_label = "Normal Wall"
+                elif predicted_class == 1:
+                    prediction_label = "Cracked Wall"
+                elif predicted_class == 2:
+                    prediction_label = "Not a Wall"
+                else:
+                    prediction_label = "Unknown"
+                
+                # Get the current layer name and shape based on sensitivity
+                layer_name = model.layers[sensitivity].name
+                layer_shape = model.layers[sensitivity].output.shape
+                
+                # Get total layers in the model
+                total_layers = len(model.layers)
+                
+                # Append model information to the results list
+                model_results.append({
+                    "Model": model_name,
+                    "Normal %": f"{prediction_percentages[0]:.2f}%",
+                    "Cracked %": f"{prediction_percentages[1]:.2f}%",
+                    "Not a Wall %": f"{prediction_percentages[2]:.2f}%",
+                    "Prediction": prediction_label,
+                    "Total Layers": total_layers,
+                    "Current Layer": layer_name,
+                    "Layer Shape": str(layer_shape)
+                })
+        
+            # Convert the results into a DataFrame for display
+            df = pd.DataFrame(model_results)
+        
+            # Display the DataFrame in a tabular format
+            st.table(df)
+        
+            # Optionally, display overlay images for each model in columns
+            overlay_images = []
+            for model_name in model_names:
+                model = load_model_by_name(model_name)
+                _, _, _, _, _, overlay_img = import_and_predict(image, model=model, sensitivity=sensitivity)
+                overlay_images.append(overlay_img)
+        
+            # Display overlay images for each model in two columns
+            col1, col2, col3 = st.columns(3)
+        
+            with col1:
+                st.image(overlay_images[0], caption=f"{model_names[0]}", use_column_width=True)
+                st.image(overlay_images[2], caption=f"{model_names[2]}", use_column_width=True)
+            
+            with col2:
+                st.image(overlay_images[1], caption=f"{model_names[1]}", use_column_width=True)
+                st.image(overlay_images[3], caption=f"{model_names[3]}", use_column_width=True)
+        
+            with col3:
+                st.image(overlay_images[4], caption=f"{model_names[4]}", use_column_width=True)
+                st.image(overlay_images[5], caption=f"{model_names[5]}", use_column_width=True)
+        
+        except Exception as e:
+            st.error(f"Error processing the uploaded image: {e}")
+        # try:
+        #     # Try to open the uploaded image using PIL
+        #     image = Image.open(file)
+        #     if image is None:
+        #         raise ValueError("Uploaded file is not a valid image.")
+            
+        #     # Correct the orientation if necessary
+        #     image = correct_orientation(image)
 
-                with col3:
-                    st.image(overlay_images[4], caption=f"{model_names[4]}", use_column_width=True)
-                    st.image(overlay_images[5], caption=f"{model_names[5]}", use_column_width=True)               
+            
+            
+        #     # Perform prediction
+        #     predictions, _, _, _, _, _  = import_and_predict(image)
+        #     if predictions is not None:
+        #         predicted_class = np.argmax(predictions)
+        #         prediction_percentages = predictions[0] * 100
+
+        #          # Display prediction result
+        #         if predicted_class == 0:
+        #             st.success(f"✅ This is a normal brick wall.")
+        #         elif predicted_class == 1:
+        #             st.error(f"❌ This wall is a cracked brick wall. ")
+        #         elif predicted_class == 2:
+        #             st.warning(f"⚠️ This is not a brick wall.")
+        #         else:
+        #             st.error(f"❓ Unknown prediction result: {predicted_class}")
+
+        #         st.write(f"**Prediction Percentages:**")
+        #         # Display predictions in one line
+        #         st.markdown(f"""
+        #             <div style="display: flex; justify-content: space-between; font-size: 14px; color: #e0e0e0; background-color: #808080; padding: 3px; border-radius: 9px;">
+        #                 <div style="text-align: center; flex: 1;">🟢 <strong>Normal Wall:</strong> {prediction_percentages[0]:.2f}%</div>
+        #                 <div style="text-align: center; flex: 1;">🔴 <strong>Cracked Wall:</strong> {prediction_percentages[1]:.2f}%</div>
+        #                 <div style="text-align: center; flex: 1;">🟠 <strong>Not a Wall:</strong> {prediction_percentages[2]:.2f}%</div>
+        #             </div>
+        #         """, unsafe_allow_html=True)
+
+        #         # st.write("")  # Creates a blank line
+             
+        #         # Create an expander for sensitivity adjustment
+        #         with st.expander("🔍 Sensitivity Settings"):
+        #             # Add a slider for selecting the sensitivity dynamically
+        #             sensitivity = st.slider(
+        #                 "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
+        #                 min_value=0,   # Minimum value for sensitivity
+        #                 max_value=12,   # Maximum value for sensitivity
+        #                 value=9,       # Default value for sensitivity
+        #                 step=1,        # Step for incremental changes
+        #                 format="%.1f"    # Format to display sensitivity with one decimal
+        #                                     )
+        #         # layers name based on slider  
+        #         layername= model.layers[sensitivity].name
+        #         layershape= model.layers[sensitivity].output.shape
+        #         # Display Layer info for selected model in two columns
+        #         col1, col2 = st.columns(2)
+        #         with col1:
+        #             st.write(f"Layer Name: ",layername)
+                
+        #         with col2:
+        #             st.write(f"Layer Shape: ",layershape)
+
+        #         # Perform prediction again
+        #         # predictions, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img  = import_and_predict(image, sensitivity=sensitivity)
+
+        #         # Define the models to compare
+        #         model_names = [
+        #         "230kmodelv12_version_cam_2", 
+        #         "230kmodelv11_version_cam_2",
+        #         "v12model_cp_epoch_10",
+        #         "v11model_cp_epoch_14",
+        #         "170kmodelv10_version_cam_1",
+        #         "230kmodelv13_version_cam_3"
+        #         ]
+    
+        #         overlay_images = []
+    
+        #         # Iterate over each model, perform prediction, and get overlay image
+        #         for model_name in model_names:
+        #             # Set the model to be used
+        #             model = load_model_by_name(model_name)
+                    
+        #             # Perform prediction for the current model
+        #             predictions, _, _, _, _, overlay_img = import_and_predict(image, model=model, sensitivity=sensitivity)
+        #             overlay_images.append(overlay_img)
+    
+        #         # Display overlay images for each model in two columns
+        #         col1, col2, col3= st.columns(3)
+    
+        #         with col1:
+        #             st.image(overlay_images[0], caption=f"{model_names[0]}", use_column_width=True)
+        #             st.image(overlay_images[2], caption=f"{model_names[2]}", use_column_width=True)
+                
+        #         with col2:
+        #             st.image(overlay_images[1], caption=f"{model_names[1]}", use_column_width=True)
+        #             st.image(overlay_images[3], caption=f"Model: {model_names[3]}", use_column_width=True)
+
+        #         with col3:
+        #             st.image(overlay_images[4], caption=f"{model_names[4]}", use_column_width=True)
+        #             st.image(overlay_images[5], caption=f"{model_names[5]}", use_column_width=True)               
 
                
                 
                                
 
-        except Exception as e:
-            st.error(f"Error processing the uploaded image: {e}")
+        # except Exception as e:
+        #     st.error(f"Error processing the uploaded image: {e}")
 
 # Footer
 # st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
