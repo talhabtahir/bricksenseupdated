@@ -321,7 +321,7 @@ else:
                 sensitivity = st.slider(
                     "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
                     min_value=0,   # Minimum value for sensitivity
-                    max_value=12,   # Maximum value for sensitivity
+                    max_value=23,   # Maximum value for sensitivity
                     value=9,       # Default value for sensitivity
                     step=1,        # Step for incremental changes
                     format="%.1f"  # Format to display sensitivity with one decimal
