@@ -374,11 +374,12 @@ else:
             # Insert a serial number (S.N.) column at the beginning
             df.insert(0, "S.N.", range(1, len(df) + 1))
 
-            # Reset the index without adding the old index as a column
-            df = df.reset_index(drop=True)
+            # Convert the DataFrame to HTML without the index
+            html_table = df.to_html(index=False, classes='table table-bordered', escape=False)
+        
+            # Render the table in Streamlit using markdown
+            st.markdown(html_table, unsafe_allow_html=True)
             
-            # Display the DataFrame in a tabular format
-            st.table(df)
         
             # Optionally, display overlay images for each model in columns
             overlay_images = []
