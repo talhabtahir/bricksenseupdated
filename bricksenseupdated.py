@@ -210,26 +210,32 @@ def import_and_predict(image_data, model=model, sensitivity=9):
         custom_model = Model(inputs=model.inputs, 
                              outputs=(model.layers[sensitivity].output, model.layers[-1].output))
 
-        # Get the conv2d_3 output and the predictions
-        conv2d_3_output, pred_vec = custom_model.predict(img_tensor)
+        # Get the output and the predictions
+        conv_output, pred_vec = custom_model.predict(img_tensor)
 
-        # Check the shape before squeezing
-        print("Shape before squeeze:", conv2d_3_output.shape)
+        # Check the output shape
+        print("Output shape:", conv_output.shape)
 
-        # If the output has more than two dimensions, apply squeeze carefully
-        if len(conv2d_3_output.shape) == 4:  # Expected shape (batch_size, height, width, channels)
-            conv2d_3_output = np.squeeze(conv2d_3_output)  # Remove the batch dimension
-            print("Shape after squeeze:", conv2d_3_output.shape)
+        if len(conv_output.shape) == 4:  # 4D output
+            conv_output = np.squeeze(conv_output)  # Remove the batch dimension
+            print("Shape after squeeze:", conv_output.shape)
 
-        # If conv2d_3_output is 3D (height, width, channels), proceed with resizing
-        if len(conv2d_3_output.shape) == 3:
-            # Resize the conv2d_3 output to match the input image size
-            heat_map_resized = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
+            # Only resize if the spatial dimensions are > 1
+            if conv_output.shape[1] > 1 and conv_output.shape[2] > 1:
+                heat_map_resized = cv2.resize(conv_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
+                heat_map = np.mean(heat_map_resized, axis=-1)
+            else:
+                # Directly use conv_output for heatmap
+                heat_map = conv_output  # Handle this case as a single activation point
+                heat_map = np.full((orig_height, orig_width), heat_map.mean())  # Create a constant heatmap for visualization
 
-            # Average all the filters from conv2d_3 to get a single activation map
-            heat_map = np.mean(heat_map_resized, axis=-1)  # (orig_height, orig_width)
+        elif len(conv_output.shape) == 3:  # 3D output for other cases
+            heat_map = np.mean(conv_output, axis=-1)
+            heat_map_resized = cv2.resize(heat_map, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
+
         else:
-            raise ValueError("Unexpected conv2d_3 output shape: expected 3D array")
+            raise ValueError("Unexpected conv_output shape: expected 3D or 4D array")
+
 
         # Normalize the heatmap for better visualization
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
