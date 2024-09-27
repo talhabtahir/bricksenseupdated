@@ -189,45 +189,37 @@ def import_and_predict(image_data, model=model, sensitivity=9):
         # Convert image to numpy array
         original_img = np.array(image_data)
 
-        # Check if the image has 4 channels (RGBA), convert to RGB if so
-        if original_img.shape[-1] == 4:
-            original_img = cv2.cvtColor(original_img, cv2.COLOR_RGBA2RGB)
-
         # Save original dimensions
         orig_height, orig_width, _ = original_img.shape
-
-        # Calculate the maximum dimension of the original image
-        max_dimension = max(orig_width, orig_height)
-
-        # Set the scaling factor for contour line thickness based on the max dimension
-        contour_thickness = max(2, int(max_dimension / 200))  # Adjust the divisor to control scaling
 
         # Preprocess the image for the model
         img_resized = cv2.resize(original_img, (224, 224))
         img_tensor = np.expand_dims(img_resized, axis=0) / 255.0
 
-        # Define a new model that outputs the conv2d_3 feature maps and the prediction
+        # Define a new model that outputs the desired layers
         custom_model = Model(inputs=model.inputs, 
                              outputs=(model.layers[sensitivity].output, model.layers[-1].output))
 
-        # Get the output and the predictions
+        # Get the conv layer output and predictions
         conv_output, pred_vec = custom_model.predict(img_tensor)
 
-        # Check the output shape
-        print("Output shape:", conv_output.shape)
+        # Debugging statements
+        print("Conv output shape:", conv_output.shape)
+        print("Prediction vector shape:", pred_vec.shape)
 
+        # Check if the output is 4D or 3D
         if len(conv_output.shape) == 4:  # 4D output
             conv_output = np.squeeze(conv_output)  # Remove the batch dimension
             print("Shape after squeeze:", conv_output.shape)
 
-            # Only resize if the spatial dimensions are > 1
             if conv_output.shape[1] > 1 and conv_output.shape[2] > 1:
+                # Resize if spatial dimensions are > 1
                 heat_map_resized = cv2.resize(conv_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
                 heat_map = np.mean(heat_map_resized, axis=-1)
             else:
                 # Directly use conv_output for heatmap
-                heat_map = conv_output  # Handle this case as a single activation point
-                heat_map = np.full((orig_height, orig_width), heat_map.mean())  # Create a constant heatmap for visualization
+                heat_map = conv_output.mean(axis=-1)  # Take mean across filters
+                heat_map = np.full((orig_height, orig_width), heat_map)  # Create a constant heatmap for visualization
 
         elif len(conv_output.shape) == 3:  # 3D output for other cases
             heat_map = np.mean(conv_output, axis=-1)
@@ -236,10 +228,9 @@ def import_and_predict(image_data, model=model, sensitivity=9):
         else:
             raise ValueError("Unexpected conv_output shape: expected 3D or 4D array")
 
-
         # Normalize the heatmap for better visualization
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
-        heat_map = heat_map / heat_map.max()  # Normalize to 0-1
+        heat_map = heat_map / heat_map.max() if heat_map.max() > 0 else heat_map  # Avoid division by zero
 
         # Threshold the heatmap to get the regions with the highest activation
         threshold = 0.5  # Adjust this threshold if needed
