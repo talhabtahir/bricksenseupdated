@@ -225,7 +225,11 @@ def import_and_predict(image_data, model=model, sensitivity=9):
             print("Shape after squeeze:", conv_output.shape)
 
         # Determine the heatmap generation based on output shape
-        heat_map = np.mean(conv_output, axis=-1) if conv_output.ndim == 3 else np.mean(conv_output, axis=(0, 1, 2))
+        if conv_output.ndim == 3:
+            heat_map = np.mean(conv_output, axis=-1)  # Average across the filters
+        elif conv_output.ndim == 1:
+            # Handle case where the output is a 1D array (e.g., shape could be (32,))
+            heat_map = conv_output  # Use it directly
 
         # Resize the heatmap to match the original image dimensions
         heat_map_resized = cv2.resize(heat_map, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
