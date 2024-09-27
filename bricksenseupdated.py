@@ -189,6 +189,10 @@ def import_and_predict(image_data, model=model, sensitivity=9):
         # Convert image to numpy array
         original_img = np.array(image_data)
 
+        # Check if the image has 4 channels (RGBA), convert to RGB if so
+        if original_img.shape[-1] == 4:
+            original_img = cv2.cvtColor(original_img, cv2.COLOR_RGBA2RGB)
+
         # Save original dimensions
         orig_height, orig_width, _ = original_img.shape
 
@@ -279,6 +283,7 @@ def import_and_predict(image_data, model=model, sensitivity=9):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None, None, None, None, None
+
 
 # # Function to localize the crack and to make predictions using the TensorFlow model
 # def import_and_predict(image_data, model=model, sensitivity=9):
