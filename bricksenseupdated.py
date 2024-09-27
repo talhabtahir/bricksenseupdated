@@ -192,6 +192,9 @@ def import_and_predict(image_data, model=model, sensitivity=9):
         # Save original dimensions
         orig_height, orig_width, _ = original_img.shape
 
+        # Set the scaling factor for contour line thickness based on the max dimension
+        contour_thickness = max(2, int(max_dimension / 200))  # Adjust the divisor to control scaling
+
         # Check if the image has 4 channels (RGBA) and convert to RGB
         if original_img.shape[2] == 4:
             original_img = cv2.cvtColor(original_img, cv2.COLOR_RGBA2RGB)
