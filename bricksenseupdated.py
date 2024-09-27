@@ -200,6 +200,10 @@ def import_and_predict(image_data, model=model, sensitivity=9):
         img_resized = cv2.resize(original_img, (224, 224))
         img_tensor = np.expand_dims(img_resized, axis=0) / 255.0  # Normalize to [0, 1]
 
+        # Ensure sensitivity index is within bounds
+        if sensitivity < 0 or sensitivity >= len(model.layers):
+            raise ValueError(f"Sensitivity index {sensitivity} is out of bounds for the model with {len(model.layers)} layers.")
+
         # Define a new model that outputs the desired layers
         custom_model = Model(inputs=model.inputs, 
                              outputs=(model.layers[sensitivity].output, model.layers[-1].output))
@@ -211,31 +215,24 @@ def import_and_predict(image_data, model=model, sensitivity=9):
         print("Conv output shape:", conv_output.shape)
         print("Prediction vector shape:", pred_vec.shape)
 
-        # Check if the output is 4D or 3D
-        if len(conv_output.shape) == 4:  # 4D output
+        # Check the shape of conv_output
+        if len(conv_output.shape) not in {3, 4}:
+            raise ValueError(f"Unexpected conv_output shape: {conv_output.shape}")
+
+        # If 4D, squeeze the first dimension (batch size)
+        if len(conv_output.shape) == 4:
             conv_output = np.squeeze(conv_output)  # Remove the batch dimension
             print("Shape after squeeze:", conv_output.shape)
 
-            if conv_output.shape[1] > 1 and conv_output.shape[2] > 1:
-                # Resize if spatial dimensions are > 1
-                heat_map_resized = cv2.resize(conv_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
-                heat_map = np.mean(heat_map_resized, axis=-1)
-            else:
-                # Directly use conv_output for heatmap
-                heat_map = conv_output.mean(axis=-1)  # Take mean across filters
-                heat_map = np.full((orig_height, orig_width), heat_map)  # Create a constant heatmap for visualization
+        # Determine the heatmap generation based on output shape
+        heat_map = np.mean(conv_output, axis=-1) if conv_output.ndim == 3 else np.mean(conv_output, axis=(0, 1, 2))
 
-        elif len(conv_output.shape) == 3:  # 3D output for other cases
-            heat_map = np.mean(conv_output, axis=-1)
-            heat_map_resized = cv2.resize(heat_map, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
-
-        else:
-            raise ValueError("Unexpected conv_output shape: expected 3D or 4D array")
+        # Resize the heatmap to match the original image dimensions
+        heat_map_resized = cv2.resize(heat_map, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
 
         # Normalize the heatmap for better visualization
-        heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
+        heat_map = np.maximum(heat_map_resized, 0)  # ReLU to eliminate negative values
         heat_map = heat_map / heat_map.max() if heat_map.max() > 0 else heat_map  # Avoid division by zero
-
 
         # Threshold the heatmap to get the regions with the highest activation
         threshold = 0.5  # Adjust this threshold if needed
