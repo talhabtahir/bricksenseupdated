@@ -184,43 +184,48 @@ def add_canvas(image, fill_color=(255, 255, 255)):
     
     return canvas
 
-
-# Function to localize the crack and to make predictions using the TensorFlow model
 def import_and_predict(image_data, model=model, sensitivity=9):
     try:
         # Convert image to numpy array
         original_img = np.array(image_data)
-        
+
         # Save original dimensions
         orig_height, orig_width, _ = original_img.shape
-        
+
         # Calculate the maximum dimension of the original image
         max_dimension = max(orig_width, orig_height)
-        
+
         # Set the scaling factor for contour line thickness based on the max dimension
         contour_thickness = max(2, int(max_dimension / 200))  # Adjust the divisor to control scaling
 
         # Preprocess the image for the model
         img_resized = cv2.resize(original_img, (224, 224))
         img_tensor = np.expand_dims(img_resized, axis=0) / 255.0
-        preprocessed_img = img_tensor
-        
+
         # Define a new model that outputs the conv2d_3 feature maps and the prediction
         custom_model = Model(inputs=model.inputs, 
-                             outputs=(model.layers[sensitivity].output, model.layers[-1].output))  # `conv2d_3` and predictions
+                             outputs=(model.layers[sensitivity].output, model.layers[-1].output))
 
         # Get the conv2d_3 output and the predictions
-        conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
-        conv2d_3_output = np.squeeze(conv2d_3_output)  # (28, 28, 32) feature maps
+        conv2d_3_output, pred_vec = custom_model.predict(img_tensor)
 
-        # Prediction for the image
-        pred = np.argmax(pred_vec)
-        
-        # Resize the conv2d_3 output to match the input image size
-        heat_map_resized = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
+        # Check the shape before squeezing
+        print("Shape before squeeze:", conv2d_3_output.shape)
 
-        # Average all the filters from conv2d_3 to get a single activation map
-        heat_map = np.mean(heat_map_resized, axis=-1)  # (orig_height, orig_width)
+        # If the output has more than two dimensions, apply squeeze carefully
+        if len(conv2d_3_output.shape) == 4:  # Expected shape (batch_size, height, width, channels)
+            conv2d_3_output = np.squeeze(conv2d_3_output)  # Remove the batch dimension
+            print("Shape after squeeze:", conv2d_3_output.shape)
+
+        # If conv2d_3_output is 3D (height, width, channels), proceed with resizing
+        if len(conv2d_3_output.shape) == 3:
+            # Resize the conv2d_3 output to match the input image size
+            heat_map_resized = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
+
+            # Average all the filters from conv2d_3 to get a single activation map
+            heat_map = np.mean(heat_map_resized, axis=-1)  # (orig_height, orig_width)
+        else:
+            raise ValueError("Unexpected conv2d_3 output shape: expected 3D array")
 
         # Normalize the heatmap for better visualization
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
@@ -236,14 +241,14 @@ def import_and_predict(image_data, model=model, sensitivity=9):
 
         # Convert heatmap to RGB for display
         heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])
-        
+
         # Convert heatmap to PIL format
         heatmap_image = Image.fromarray(heatmap_colored)
-        
+
         # Create contoured image
         contoured_img = original_img.copy()  # Copy original image
         cv2.drawContours(contoured_img, contours, -1, (0, 0, 255), contour_thickness)  # Draw blue contours
-        
+
         # Convert contoured image to PIL format
         contoured_image = Image.fromarray(contoured_img)
 
@@ -253,28 +258,118 @@ def import_and_predict(image_data, model=model, sensitivity=9):
         heatmap_overlay = Image.blend(original_img_pil, heatmap_image_rgba, alpha=0.5)
 
         # Draw contours on the heatmap-overlayed image
-        # Convert heatmap-overlayed image to RGB for contour drawing
         heatmap_overlay_rgb = heatmap_overlay.convert("RGB")
         heatmap_overlay_rgb_np = np.array(heatmap_overlay_rgb)
-        # heatmap_overlay_np = np.array(heatmap_overlay)
-        cv2.drawContours(heatmap_overlay_rgb_np, contours, -1, (0, 0, 0), contour_thickness)  # Draw blue contours
+        cv2.drawContours(heatmap_overlay_rgb_np, contours, -1, (0, 0, 0), contour_thickness)  # Draw contours
 
         # Convert overlay image to PIL format
         overlay_img = Image.fromarray(heatmap_overlay_rgb_np)
 
         # Get the predicted class name
         class_labels = ["Normal", "Cracked", "Not a Wall"]
-        predicted_class = class_labels[pred]
+        predicted_class = class_labels[np.argmax(pred_vec)]
 
         # Add white borders
         border_size = 10  # Set the border size
         image_with_border = add_white_border(image_data, border_size)
         contours_with_border = add_white_border(overlay_img, border_size)
 
-        return pred_vec, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img 
+        return pred_vec, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img
+
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None, None, None, None, None
+
+# # Function to localize the crack and to make predictions using the TensorFlow model
+# def import_and_predict(image_data, model=model, sensitivity=9):
+#     try:
+#         # Convert image to numpy array
+#         original_img = np.array(image_data)
+        
+#         # Save original dimensions
+#         orig_height, orig_width, _ = original_img.shape
+        
+#         # Calculate the maximum dimension of the original image
+#         max_dimension = max(orig_width, orig_height)
+        
+#         # Set the scaling factor for contour line thickness based on the max dimension
+#         contour_thickness = max(2, int(max_dimension / 200))  # Adjust the divisor to control scaling
+
+#         # Preprocess the image for the model
+#         img_resized = cv2.resize(original_img, (224, 224))
+#         img_tensor = np.expand_dims(img_resized, axis=0) / 255.0
+#         preprocessed_img = img_tensor
+        
+#         # Define a new model that outputs the conv2d_3 feature maps and the prediction
+#         custom_model = Model(inputs=model.inputs, 
+#                              outputs=(model.layers[sensitivity].output, model.layers[-1].output))  # `conv2d_3` and predictions
+
+#         # Get the conv2d_3 output and the predictions
+#         conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
+#         conv2d_3_output = np.squeeze(conv2d_3_output)  # (28, 28, 32) feature maps
+
+#         # Prediction for the image
+#         pred = np.argmax(pred_vec)
+        
+#         # Resize the conv2d_3 output to match the input image size
+#         heat_map_resized = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
+
+#         # Average all the filters from conv2d_3 to get a single activation map
+#         heat_map = np.mean(heat_map_resized, axis=-1)  # (orig_height, orig_width)
+
+#         # Normalize the heatmap for better visualization
+#         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
+#         heat_map = heat_map / heat_map.max()  # Normalize to 0-1
+
+#         # Threshold the heatmap to get the regions with the highest activation
+#         threshold = 0.5  # Adjust this threshold if needed
+#         heat_map_thresh = np.uint8(255 * heat_map)
+#         _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
+
+#         # Find contours in the thresholded heatmap
+#         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+#         # Convert heatmap to RGB for display
+#         heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])
+        
+#         # Convert heatmap to PIL format
+#         heatmap_image = Image.fromarray(heatmap_colored)
+        
+#         # Create contoured image
+#         contoured_img = original_img.copy()  # Copy original image
+#         cv2.drawContours(contoured_img, contours, -1, (0, 0, 255), contour_thickness)  # Draw blue contours
+        
+#         # Convert contoured image to PIL format
+#         contoured_image = Image.fromarray(contoured_img)
+
+#         # Overlay heatmap on original image
+#         heatmap_image_rgba = heatmap_image.convert("RGBA")
+#         original_img_pil = Image.fromarray(original_img).convert("RGBA")
+#         heatmap_overlay = Image.blend(original_img_pil, heatmap_image_rgba, alpha=0.5)
+
+#         # Draw contours on the heatmap-overlayed image
+#         # Convert heatmap-overlayed image to RGB for contour drawing
+#         heatmap_overlay_rgb = heatmap_overlay.convert("RGB")
+#         heatmap_overlay_rgb_np = np.array(heatmap_overlay_rgb)
+#         # heatmap_overlay_np = np.array(heatmap_overlay)
+#         cv2.drawContours(heatmap_overlay_rgb_np, contours, -1, (0, 0, 0), contour_thickness)  # Draw blue contours
+
+#         # Convert overlay image to PIL format
+#         overlay_img = Image.fromarray(heatmap_overlay_rgb_np)
+
+#         # Get the predicted class name
+#         class_labels = ["Normal", "Cracked", "Not a Wall"]
+#         predicted_class = class_labels[pred]
+
+#         # Add white borders
+#         border_size = 10  # Set the border size
+#         image_with_border = add_white_border(image_data, border_size)
+#         contours_with_border = add_white_border(overlay_img, border_size)
+
+#         return pred_vec, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img 
+#     except Exception as e:
+#         st.error(f"An error occurred during prediction: {e}")
+#         return None, None, None, None, None, None
 
 # Function to load the model based on its name
 def load_model_by_name(model_name):
