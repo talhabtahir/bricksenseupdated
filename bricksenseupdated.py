@@ -192,6 +192,9 @@ def import_and_predict(image_data, model=model, sensitivity=9):
         # Save original dimensions
         orig_height, orig_width, _ = original_img.shape
 
+        # Calculate the maximum dimension of the original image
+        max_dimension = max(orig_width, orig_height)
+
         # Set the scaling factor for contour line thickness based on the max dimension
         contour_thickness = max(2, int(max_dimension / 200))  # Adjust the divisor to control scaling
 
