@@ -192,9 +192,13 @@ def import_and_predict(image_data, model=model, sensitivity=9):
         # Save original dimensions
         orig_height, orig_width, _ = original_img.shape
 
+        # Check if the image has 4 channels (RGBA) and convert to RGB
+        if original_img.shape[2] == 4:
+            original_img = cv2.cvtColor(original_img, cv2.COLOR_RGBA2RGB)
+
         # Preprocess the image for the model
         img_resized = cv2.resize(original_img, (224, 224))
-        img_tensor = np.expand_dims(img_resized, axis=0) / 255.0
+        img_tensor = np.expand_dims(img_resized, axis=0) / 255.0  # Normalize to [0, 1]
 
         # Define a new model that outputs the desired layers
         custom_model = Model(inputs=model.inputs, 
@@ -231,6 +235,7 @@ def import_and_predict(image_data, model=model, sensitivity=9):
         # Normalize the heatmap for better visualization
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
         heat_map = heat_map / heat_map.max() if heat_map.max() > 0 else heat_map  # Avoid division by zero
+
 
         # Threshold the heatmap to get the regions with the highest activation
         threshold = 0.5  # Adjust this threshold if needed
