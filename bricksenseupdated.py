@@ -515,7 +515,7 @@ else:
             
             with col2:
                 st.image(overlay_images[1], caption=f"{model_names[1]}", use_column_width=True)
-                # st.image(overlay_images[3], caption=f"{model_names[4]}", use_column_width=True)
+                st.image(overlay_images[4], caption=f"{model_names[4]}", use_column_width=True)
                 st.write("")  # Creates a blank line
 
             # with col3:
