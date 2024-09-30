@@ -510,13 +510,13 @@ else:
             with col1:
                 st.image(overlay_images[0], caption=f"{model_names[0]}", use_column_width=True)
                 st.image(overlay_images[2], caption=f"{model_names[3]}", use_column_width=True)
-                st.write(len(model.layers))  # Creates a blank line
+                # st.write(len(model.layers))  # Creates a blank line
 
             
             with col2:
                 st.image(overlay_images[1], caption=f"{model_names[1]}", use_column_width=True)
                 st.image(overlay_images[4], caption=f"{model_names[4]}", use_column_width=True)
-                st.write("")  # Creates a blank line
+                # st.write("")  # Creates a blank line
 
             # with col3:
             #     st.image(overlay_images[2], caption=f"{model_names[2]}", use_column_width=True)
