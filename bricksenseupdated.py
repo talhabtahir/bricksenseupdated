@@ -506,7 +506,7 @@ else:
                 
             # st.image(overlay_images[0], caption=f"{model_names[0]}", use_column_width=True)
             # # Display overlay images for each model in two columns
-            col1, col2, col3= st.columns(3)
+            col1= st.columns(1)
         
             with col1:
                 st.image(overlay_images[0], caption=f"{model_names[0]}", use_column_width=True)
@@ -514,15 +514,15 @@ else:
                 # # st.write(len(model.layers))  # Creates a blank line
 
             
-            with col2:
+            # with col2:
             #     st.image(overlay_images[1], caption=f"{model_names[1]}", use_column_width=True)
             #     st.image(overlay_images[5], caption=f"{model_names[5]}", use_column_width=True)
                 # st.write("")  # Creates a blank line
 
-            with col3:
+            # with col3:
             #     st.image(overlay_images[3], caption=f"{model_names[3]}", use_column_width=True)
             #     st.image(overlay_images[6], caption=f"{model_names[6]}", use_column_width=True)
-                st.write("")  # Creates a blank line
+                # st.write("")  # Creates a blank line
 
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
