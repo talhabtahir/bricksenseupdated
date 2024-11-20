@@ -17,10 +17,10 @@ st.set_page_config(
     page_title="Brick Detection",
     page_icon="static/brickicon8.png",  # Path to your favicon file
     layout="centered",
-    menu_items={
-        # 'Get Help': 'https://example.com/help',
-        # 'Report a bug': 'https://example.com/bug',
-        'About': 'Developed by BrickSense Team | © 2024'}
+    # menu_items={
+    #     # 'Get Help': 'https://example.com/help',
+    #     # 'Report a bug': 'https://example.com/bug',
+    #     'About': 'Developed by BrickSense Team | © 2024'}
 )
 
 # # Custom CSS to hide specific Streamlit elements
