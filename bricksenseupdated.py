@@ -19,6 +19,14 @@ st.set_page_config(
     layout="centered"
 )
 
+# Add custom CSS to hide the GitHub icon
+hide_github_icon = """
+#GithubIcon {
+  visibility: hidden;
+}
+"""
+st.markdown(hide_github_icon, unsafe_allow_html=True)
+
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo2.png")
 st.image(imagelogo, use_column_width=True, width=200)  # Update the path to your logo file
