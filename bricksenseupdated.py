@@ -351,8 +351,8 @@ footer = """
         background-color: #f5f5f5; /* Adjust background color to match the app theme */
         color: #333; /* Adjust text color for contrast */
         text-align: center;
-        padding: 10px 0;
-        font-size: 0.9rem;
+        font-size: 0.9rem; /* Adjust font size for minimal appearance */
+        margin: 0; /* Ensure no extra spacing */
         border-top: 1px solid #e0e0e0; /* Optional border for separation */
     }
     </style>
