@@ -23,28 +23,28 @@ st.set_page_config(
         'About': 'Developed by BrickSense Team | © 2024'}
 )
 
-# Custom CSS to hide specific Streamlit elements
-hide_github_style = """
-<style>
-/* Hide the top-right menu entirely (including GitHub links) */
-header {visibility: hidden;}
-footer {visibility: visible;}
+# # Custom CSS to hide specific Streamlit elements
+# hide_github_style = """
+#             <style>
+#             /* Hide the top-right menu entirely (including GitHub links) */
+#             header {visibility: hidden;}
+#             footer {visibility: visible;}
+            
+#             /* Alternatively, to hide just specific links */
+#             /* Target GitHub repo link and fork link directly by their classes or IDs */
+#             /* Uncomment and modify the lines below based on the inspection */
+            
+#             /* a[href*="github.com/your-repo-name"] {display: none !important;} */
+            
+#             /* .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
+            
+#             /* iframe[src*="github.com"] {display: none !important;} */
+            
+#             </style>
+#             """
 
-/* Alternatively, to hide just specific links */
-/* Target GitHub repo link and fork link directly by their classes or IDs */
-/* Uncomment and modify the lines below based on the inspection */
-
-/* a[href*="github.com/your-repo-name"] {display: none !important;} */
-
-/* .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
-
-/* iframe[src*="github.com"] {display: none !important;} */
-
-</style>
-"""
-
-# Inject the custom CSS into the Streamlit app
-st.markdown(hide_github_style, unsafe_allow_html=True)
+# # Inject the custom CSS into the Streamlit app
+# st.markdown(hide_github_style, unsafe_allow_html=True)
 
 
 # # Helper function to convert image to base64
@@ -626,7 +626,7 @@ else:
         #     st.error(f"Error processing the uploaded image: {e}")
 
 # Footer
-# st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
+st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
 
 # footer_style = """
 #     <style>
