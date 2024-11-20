@@ -340,4 +340,24 @@ else:
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
 # Footer
-st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
+# st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
+# Footer
+footer = """
+    <style>
+    .footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: #f5f5f5; /* Adjust background color to match the app theme */
+        color: #333; /* Adjust text color for contrast */
+        text-align: center;
+        padding: 10px 0;
+        font-size: 0.9rem;
+        border-top: 1px solid #e0e0e0; /* Optional border for separation */
+    }
+    </style>
+    <div class="footer">
+        Developed with <span style="color: #e25555;">♥</span> using Streamlit & TensorFlow | © 2024 BrickSense
+    </div>
+"""
+st.markdown(footer, unsafe_allow_html=True)
