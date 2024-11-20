@@ -340,4 +340,4 @@ else:
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
 # Footer
-# st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
+st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
