@@ -625,8 +625,8 @@ else:
         # except Exception as e:
         #     st.error(f"Error processing the uploaded image: {e}")
 
-# Footer
-# st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
+Footer
+st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
 
 # footer_style = """
 #     <style>
@@ -649,23 +649,23 @@ else:
 
 # st.markdown(footer_style, unsafe_allow_html=True)
 
-import streamlit as st
+# import streamlit as st
 
-st.markdown(
-    """
-    <div style="
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        background-color: white;
-        color: gray;
-        text-align: center;
-        font-size: small;
-        padding: 10px;
-    ">
-        Developed with Streamlit & TensorFlow | © 2024 BrickSense
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# st.markdown(
+#     """
+#     <div style="
+#         position: fixed;
+#         left: 0;
+#         bottom: 0;
+#         width: 100%;
+#         background-color: white;
+#         color: gray;
+#         text-align: center;
+#         font-size: small;
+#         padding: 10px;
+#     ">
+#         Developed with Streamlit & TensorFlow | © 2024 BrickSense
+#     </div>
+#     """,
+#     unsafe_allow_html=True
+# )
