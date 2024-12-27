@@ -22,7 +22,7 @@ st.set_page_config(
 
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo2.png")
-st.image(imagelogo, use_column_width=True, width=200)  # Update the path to your logo file
+st.image(imagelogo, use_container_width=True, width=200)  # Update the path to your logo file
 
 # Add space below the logo
 st.write("")  # Creates a blank line
@@ -325,7 +325,7 @@ else:
                 _, _, _, _, _, overlay_img = import_and_predict(image, model=model, sensitivity=sensitivity)
                 overlay_images.append(overlay_img)
                 
-            # st.image(overlay_images[0], caption=f"{model_names[0]}", use_column_width=True)
+            # st.image(overlay_images[0], caption=f"{model_names[0]}", use_container_width=True)
             # # Display overlay images for each model in two columns
             # col1= st.columns(1)
 
@@ -334,7 +334,7 @@ else:
             
             for idx, overlay_img in enumerate(overlay_images):
                 with cols[idx % 4]:  # Cycle through columns
-                    st.image(overlay_img, caption=f"{model_names[idx]}", use_column_width=True)
+                    st.image(overlay_img, caption=f"{model_names[idx]}", use_container_width=True)
                     
             
         except Exception as e:
